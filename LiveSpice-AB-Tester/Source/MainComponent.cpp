@@ -1,21 +1,34 @@
-/*
+﻿/*
   ==============================================================================
     Main Component Implementation with Audio Device Management
   ==============================================================================
 */
 
 #include "MainComponent.h"
+#include <cmath>
+
+namespace
+{
+    bool isDebugAudioEnabled()
+    {
+        if (auto* app = juce::JUCEApplication::getInstance())
+        {
+            const auto args = app->getCommandLineParameters();
+            return args.containsIgnoreCase("--debug-audio") || args.containsIgnoreCase("--debug");
+        }
+        return false;
+    }
+
+    const bool kDebugAudioEnabled = isDebugAudioEnabled();
+}
 
 // Initialize global logging
-LogLevel g_currentLogLevel = LogLevel::INFO;  // Default to INFO level (minimal logging)
-bool g_loggingEnabled = false;
+LogLevel g_currentLogLevel = kDebugAudioEnabled ? LogLevel::DEBUG : LogLevel::INFO;
+bool g_loggingEnabled = true;
 juce::File g_logFile = juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("LiveSpice_AB_Tester.log");
 
 MainComponent::MainComponent()
 {
-    // Initialize audio device manager with proper error handling
-    audioDeviceManager.initialiseWithDefaultDevices(2, 2);
-    
     // Initialize abstraction layer components
     audioRouter = std::make_unique<AudioRouter>();
     paramSync = std::make_unique<ParameterSynchronizer>();
@@ -28,6 +41,12 @@ MainComponent::MainComponent()
     // Setup parameter change callback via ParameterSynchronizer
     controlPanel->onParameterChanged = [this](const juce::String& paramId, float value) {
         paramSync->setParameter(paramId, value);
+        
+        // Update schematic editor UI if it exists
+        if (schematicEditor)
+        {
+            schematicEditor->updateParameterUI(paramId, value);
+        }
     };
 
     // Initialize A/B switch
@@ -47,52 +66,95 @@ MainComponent::MainComponent()
         logDebug("Auto-loading Schematic (A) vs Generated VST3 (B) for comparison", LogLevel::INFO);
         
         // Load Marshall Blues Breaker schematic to processor A
+        logDebug("Starting to load Processor A (Schematic)...", LogLevel::INFO);
         processorA = ProcessorFactory::create("h:\\Live Spice DSP translation layer\\example pedals\\Marshall Blues Breaker.schx");
         isPluginALoaded = (processorA != nullptr && processorA->isLoaded());
         
+        if (processorA)
+        {
+            logDebug("Processor A created: Type=" + processorA->getType() + 
+                    ", Name=" + processorA->getName() + 
+                    ", Loaded=" + juce::String(isPluginALoaded ? "YES" : "NO"), 
+                    LogLevel::INFO);
+        }
+        else
+        {
+            logDebug("ERROR: Processor A is NULL!", LogLevel::ERROR);
+        }
+        
         // Load Marshall Blues Breaker VST3 (generated) to processor B
+        logDebug("Starting to load Processor B (VST3)...", LogLevel::INFO);
         processorB = ProcessorFactory::createVST3(TEST_PLUGIN_B_PATH);
         isPluginBLoaded = (processorB != nullptr && processorB->isLoaded());
+        
+        if (processorB)
+        {
+            logDebug("Processor B created: Type=" + processorB->getType() + 
+                    ", Name=" + processorB->getName() + 
+                    ", Loaded=" + juce::String(isPluginBLoaded ? "YES" : "NO"), 
+                    LogLevel::INFO);
+        }
+        else
+        {
+            logDebug("ERROR: Processor B is NULL!", LogLevel::ERROR);
+        }
         
         if (isPluginALoaded && isPluginBLoaded)
         {
             logDebug("Successfully loaded both processors for comparison", LogLevel::INFO);
             
             // Create schematic editor UI for processor A
+            logDebug("Checking if Processor A type is SchematicHost...", LogLevel::INFO);
             if (processorA->getType() == "SchematicHost")
             {
+                logDebug("Type matches SchematicHost, attempting dynamic_cast...", LogLevel::INFO);
                 auto* schematicProc = dynamic_cast<SchematicProcessor*>(processorA.get());
                 if (schematicProc)
                 {
-                    logDebug("Creating SchematicEditorComponent for processor A", LogLevel::INFO);
+                    logDebug("Successfully cast to SchematicProcessor, creating editor window...", LogLevel::INFO);
                     
-                    // DIAGNOSTIC: Show alert to confirm we reach this code
-                    juce::AlertWindow::showMessageBoxAsync(
-                        juce::AlertWindow::InfoIcon,
-                        "Plugin A Debug",
-                        "About to create schematic editor window for: " + processorA->getName(),
-                        "OK");
-                    
-                    // Create a window for the schematic editor
-                    editorWindowA = std::make_unique<EditorWindow>(
-                        "Plugin A - " + processorA->getName() + " (Schematic)",
-                        juce::Colours::darkslategrey,
-                        juce::DocumentWindow::allButtons);
-                    
-                    // Create the editor component and set it as window content
-                    auto editorComponent = std::make_unique<SchematicEditorComponent>(schematicProc);
-                    editorComponent->onParameterChanged = [this](const juce::String& paramId, float value) {
-                        if (processorA)
-                            processorA->setParameter(paramId, value);
-                    };
-                    
-                    editorWindowA->setContentOwned(editorComponent.release(), true);
-                    editorWindowA->setResizable(true, true);
-                    editorWindowA->centreWithSize(450, 350);
-                    editorWindowA->setVisible(true);
-                    editorWindowA->toFront(true);
-                    
-                    logDebug("SchematicEditorComponent window created and shown", LogLevel::INFO);
+                    try
+                    {
+                        // Create a window for the schematic editor
+                        editorWindowA = std::make_unique<EditorWindow>(
+                            "Plugin A - " + processorA->getName() + " (Schematic)",
+                            juce::Colours::darkslategrey,
+                            juce::DocumentWindow::allButtons);
+                        
+                        logDebug("EditorWindow created, now creating SchematicEditorComponent...", LogLevel::INFO);
+                        
+                        // Create the editor component and set it as window content
+                        auto editorComponent = std::make_unique<SchematicEditorComponent>(schematicProc);
+                        
+                        logDebug("SchematicEditorComponent created, setting up callback...", LogLevel::INFO);
+                        
+                        // Store pointer for UI updates
+                        schematicEditor = editorComponent.get();
+                        
+                        editorComponent->onParameterChanged = [this](const juce::String& paramId, float value) {
+                            if (processorA)
+                            {
+                                processorA->setParameter(paramId, value);
+                                // Also sync to processor B via parameter synchronizer
+                                paramSync->setParameter(paramId, value, false);  // false = don't notify again
+                            }
+                        };
+                        
+                        logDebug("Setting content to window...", LogLevel::INFO);
+                        editorWindowA->setContentOwned(editorComponent.release(), true);
+                        editorWindowA->setResizable(true, true);
+                        editorWindowA->centreWithSize(500, 450);  // Increased height to fit 3 controls
+                        
+                        logDebug("Making window visible...", LogLevel::INFO);
+                        editorWindowA->setVisible(true);
+                        editorWindowA->toFront(true);
+                        
+                        logDebug("SchematicEditorComponent window successfully created and shown!", LogLevel::INFO);
+                    }
+                    catch (const std::exception& e)
+                    {
+                        logDebug("EXCEPTION creating schematic editor: " + juce::String(e.what()), LogLevel::ERROR);
+                    }
                 }
                 else
                 {
@@ -132,10 +194,10 @@ MainComponent::MainComponent()
             paramSync->setProcessorB(processorB.get());
             
             // Prepare processors for playback
-            processorA->prepareToPlay(audioDeviceManager.getAudioDeviceSetup().sampleRate, 
-                                     audioDeviceManager.getAudioDeviceSetup().bufferSize);
-            processorB->prepareToPlay(audioDeviceManager.getAudioDeviceSetup().sampleRate,
-                                     audioDeviceManager.getAudioDeviceSetup().bufferSize);
+            processorA->prepareToPlay(deviceManager.getAudioDeviceSetup().sampleRate, 
+                                     deviceManager.getAudioDeviceSetup().bufferSize);
+            processorB->prepareToPlay(deviceManager.getAudioDeviceSetup().sampleRate,
+                                     deviceManager.getAudioDeviceSetup().bufferSize);
             
             pluginALabel.setText("A: " + processorA->getName() + " [" + processorA->getType() + "]", 
                                juce::dontSendNotification);
@@ -176,6 +238,15 @@ MainComponent::MainComponent()
     audioStatusLabel.setFont(juce::Font(12.0f));
     audioStatusLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
     addAndMakeVisible(audioStatusLabel);
+
+    // Audio device label - show which output device is being used
+    auto* currentDevice = deviceManager.getCurrentAudioDevice();
+    juce::String deviceName = currentDevice ? currentDevice->getName() : "No device";
+    audioDeviceLabel.setText("Output Device: " + deviceName, juce::dontSendNotification);
+    audioDeviceLabel.setJustificationType(juce::Justification::centred);
+    audioDeviceLabel.setFont(juce::Font(11.0f));
+    audioDeviceLabel.setColour(juce::Label::textColourId, juce::Colours::yellow);
+    addAndMakeVisible(audioDeviceLabel);
 
     // Set window size
     setSize(1000, 800);
@@ -314,9 +385,10 @@ void MainComponent::showAudioSettings()
         void closeButtonPressed() override
         {
             // Update the audio status label when window closes
-            if (mainComponent && mainComponent->audioDeviceManager.getCurrentAudioDevice())
+            auto& dm = mainComponent->deviceManager;
+            if (dm.getCurrentAudioDevice())
             {
-                auto device = mainComponent->audioDeviceManager.getCurrentAudioDevice();
+                auto device = dm.getCurrentAudioDevice();
                 mainComponent->audioStatusLabel.setText(
                     juce::String("Audio: ") + device->getName() +
                     " (" + juce::String(device->getCurrentSampleRate()) + " Hz)",
@@ -331,8 +403,10 @@ void MainComponent::showAudioSettings()
     
     audioSettingsWindow = std::make_unique<AudioSettingsWindow>(this);
 
+    // Use AudioAppComponent's device manager
+    auto& dm = deviceManager;
     auto selector = std::make_unique<juce::AudioDeviceSelectorComponent>(
-        audioDeviceManager, 0, 2, 0, 2, false, false, true, false);
+        dm, 0, 2, 0, 2, false, false, true, false);
 
     audioSettingsWindow->setContentOwned(selector.release(), true);
     audioSettingsWindow->centreWithSize(500, 400);
@@ -346,6 +420,33 @@ void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate
     // Store sample rate for later use
     currentSampleRate = sampleRate;
     currentBlockSize = samplesPerBlockExpected;
+    
+    auto* currentDevice = deviceManager.getCurrentAudioDevice();
+    if (!currentDevice)
+    {
+        logDebug("ERROR in prepareToPlay: No audio device! Audio callback may not work!", LogLevel::ERROR);
+        return;
+    }
+
+    if (kDebugAudioEnabled)
+    {
+        logDebug("=== AUDIO DEVICE INFO ===", LogLevel::INFO);
+        logDebug("Device: " + currentDevice->getName(), LogLevel::INFO);
+        logDebug("Input channels: " + juce::String(currentDevice->getInputChannelNames().size()), LogLevel::INFO);
+        logDebug("Output channels: " + juce::String(currentDevice->getOutputChannelNames().size()), LogLevel::INFO);
+        
+        auto inputChannels = currentDevice->getInputChannelNames();
+        for (int i = 0; i < inputChannels.size(); ++i)
+        {
+            logDebug("  Input " + juce::String(i+1) + ": " + inputChannels[i], LogLevel::DEBUG);
+        }
+        
+        auto outputChannels = currentDevice->getOutputChannelNames();
+        for (int i = 0; i < outputChannels.size(); ++i)
+        {
+            logDebug("  Output " + juce::String(i+1) + ": " + outputChannels[i], LogLevel::DEBUG);
+        }
+    }
     
     // Allocate input capture buffer
     inputBuffer.setSize(2, samplesPerBlockExpected);
@@ -367,25 +468,126 @@ void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate
         juce::String(samplesPerBlockExpected) + " samples",
         juce::dontSendNotification);
     
-    logDebug("prepareToPlay: " + juce::String(sampleRate) + " Hz, " + 
-             juce::String(samplesPerBlockExpected) + " samples", LogLevel::DEBUG);
+    if (kDebugAudioEnabled)
+    {
+        logDebug("prepareToPlay: " + juce::String(sampleRate) + " Hz, " + 
+                 juce::String(samplesPerBlockExpected) + " samples", LogLevel::DEBUG);
+    }
 }
 
 void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
-    // Only process if we're in configured phase
-    if (currentPhase != WorkflowPhase::Configured)
+    if (kDebugAudioEnabled)
     {
-        bufferToFill.clearActiveBufferRegion();
-        return;
+        // DIAGNOSTIC: Check if this callback is being called
+        static int callCount = 0;
+        if (callCount++ == 0)
+        {
+            juce::Logger::writeToLog("=== getNextAudioBlock CALLBACK IS BEING CALLED ===");
+            logDebug("=== Audio callback started! ===", LogLevel::INFO);
+        }
     }
-
+    
     // Get audio buffer - this is BOTH input AND output with AudioAppComponent
     auto& buffer = *bufferToFill.buffer;
     
-    // Important: When using AudioAppComponent with 2 input and 2 output channels,
-    // JUCE automatically reads input and places it in the first 2 channels,
-    // so we need to copy it before processing
+    // ALWAYS track input level regardless of phase - this shows if Focusrite is working
+    float inputLevelBefore = 0.0f;
+    float minSample = 1.0f, maxSample = -1.0f;
+    for (int ch = 0; ch < buffer.getNumChannels(); ++ch)
+    {
+        inputLevelBefore = juce::jmax(inputLevelBefore, buffer.getMagnitude(ch, bufferToFill.startSample, bufferToFill.numSamples));
+        
+        if (kDebugAudioEnabled)
+        {
+            // Track min/max for diagnostics
+            auto* chData = buffer.getReadPointer(ch, bufferToFill.startSample);
+            for (int i = 0; i < bufferToFill.numSamples; ++i)
+            {
+                minSample = juce::jmin(minSample, chData[i]);
+                maxSample = juce::jmax(maxSample, chData[i]);
+            }
+        }
+    }
+    inputLevel.store(inputLevelBefore);  // Update meter even if not configured
+    
+    if (kDebugAudioEnabled)
+    {
+        // Log input level periodically to help debug
+        static int levelLogCounter = 0;
+        if (levelLogCounter++ % 500 == 0)
+        {
+            auto* device = deviceManager.getCurrentAudioDevice();
+            juce::String deviceName = device ? device->getName() : "NONE";
+            logDebug("INPUT: Level=" + juce::String(inputLevelBefore, 6) + 
+                    " Min=" + juce::String(minSample, 6) + 
+                    " Max=" + juce::String(maxSample, 6) + 
+                    " Device=" + deviceName, 
+                    LogLevel::DEBUG);
+        }
+        
+        // Alert if input changes significantly
+        static float lastInputLevel = 0.0f;
+        if (std::abs(inputLevelBefore - lastInputLevel) > 0.001f && levelLogCounter % 100 == 0)
+        {
+            logDebug("INPUT CHANGED: " + juce::String(lastInputLevel, 4) + " -> " + juce::String(inputLevelBefore, 4), LogLevel::INFO);
+        }
+        lastInputLevel = inputLevelBefore;
+    }
+    
+    // If not configured, pass audio through without processing (don't silence!)
+    // This allows you to hear the input from the Focusrite even during setup
+    if (currentPhase != WorkflowPhase::Configured)
+    {
+        // Update all meters to show input passthrough
+        processedLevel.store(inputLevelBefore);
+        outputLevel.store(inputLevelBefore);
+        deviceOutputLevel.store(inputLevelBefore);
+        
+        if (kDebugAudioEnabled)
+        {
+            // Repaint meters
+            static int repaintCounter = 0;
+            if (repaintCounter++ % 5 == 0)
+                repaint(10, 95, getWidth() - 20, 60);
+        }
+        
+        return;  // Pass through unchanged
+    }
+    
+    if (kDebugAudioEnabled)
+    {
+        // DIAGNOSTIC: Generate a 1kHz test tone every 10 seconds to verify output works
+        static int testToneCounter = 0;
+        if (testToneCounter++ > 480000)  // After ~10 seconds at 48kHz
+        {
+            testToneCounter = 0;
+            logDebug("=== GENERATING TEST TONE - IF YOU HEAR A BEEP, AUDIO OUTPUT IS WORKING ===", LogLevel::INFO);
+            
+            // Generate a 1kHz sine wave test tone
+            for (int ch = 0; ch < buffer.getNumChannels(); ++ch)
+            {
+                auto* samples = buffer.getWritePointer(ch);
+                for (int i = 0; i < bufferToFill.numSamples; ++i)
+                {
+                    // 1kHz sine tone, 0.5 amplitude
+                    static int sampleIdx = 0;
+                    samples[i] = 0.5f * sinf(2.0f * 3.14159f * 1000.0f * sampleIdx / 48000.0f);
+                    sampleIdx++;
+                }
+            }
+            return;
+        }
+        
+        // DIAGNOSTIC: Log buffer configuration
+        static int diagCounter = 0;
+        if (diagCounter++ % 1000 == 0)
+        {
+            logDebug("BUFFER STATE: NumChannels=" + juce::String(buffer.getNumChannels()) + 
+                    ", NumSamples=" + juce::String(bufferToFill.numSamples) + 
+                    ", StartSample=" + juce::String(bufferToFill.startSample), LogLevel::DEBUG);
+        }
+    }
     
     // Copy current input to our input buffer for reference
     for (int channel = 0; channel < juce::jmin(buffer.getNumChannels(), inputBuffer.getNumChannels()); ++channel)
@@ -395,6 +597,9 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
         std::copy(readPtr, readPtr + bufferToFill.numSamples, writePtr);
     }
     
+    // Input level already captured at start of function - use it for processing display
+    processedLevel.store(inputLevel.load());  // Will update after processing
+    
     // Process through audio router (routes to A or B based on selection)
     if (audioRouter)
     {
@@ -402,25 +607,68 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
                                  processorA.get(), processorB.get());
     }
     
-    // Log periodically for debugging
-    static int audioCounter = 0;
-    if (audioCounter++ % 1000 == 0)
+    if (kDebugAudioEnabled)
     {
-        auto selection = audioRouter ? audioRouter->getSelection() : AudioRouter::ProcessorSelection::A;
-        
-        // Check if we're getting input
-        float maxInputLevel = 0.0f;
-        for (int channel = 0; channel < inputBuffer.getNumChannels(); ++channel)
+        // EMERGENCY TEST: Amplify output by 2x (debug only)
+        for (int ch = 0; ch < buffer.getNumChannels(); ++ch)
         {
-            auto maxValue = inputBuffer.getMagnitude(channel, 0, inputBuffer.getNumSamples());
-            maxInputLevel = juce::jmax(maxInputLevel, maxValue);
+            auto* channelData = buffer.getWritePointer(ch, bufferToFill.startSample);
+            for (int i = 0; i < bufferToFill.numSamples; ++i)
+            {
+                channelData[i] *= 2.0f;
+            }
+        }
+    }
+    
+    // CRITICAL DEBUG: Check output level AFTER processing and amplification
+    float outputLevelAfter = 0.0f;
+    for (int ch = 0; ch < buffer.getNumChannels(); ++ch)
+    {
+        outputLevelAfter = juce::jmax(outputLevelAfter, buffer.getMagnitude(ch, bufferToFill.startSample, bufferToFill.numSamples));
+    }
+    
+    // Update level displays for UI - show complete audio chain
+    processedLevel.store(outputLevelAfter);   // What came out of DSP processing
+    outputLevel.store(outputLevelAfter);      // What's in the buffer now
+    deviceOutputLevel.store(outputLevelAfter); // What will be sent to device (same as buffer for now)
+    
+    if (kDebugAudioEnabled)
+    {
+        // Repaint level meters every 5 audio blocks for smooth updates
+        static int repaintCounter = 0;
+        if (repaintCounter++ % 5 == 0)
+            repaint(10, 95, getWidth() - 20, 60);  // Repaint just the meter area at the top
+        
+        // DIAGNOSTIC: Check if buffer samples are actually written
+        static int diagCounter = 0;
+        if (diagCounter++ % 1000 == 0)
+        {
+            float sample0_ch0 = buffer.getNumChannels() > 0 ? *buffer.getReadPointer(0) : 0.0f;
+            float sample0_ch1 = buffer.getNumChannels() > 1 ? *buffer.getReadPointer(1) : 0.0f;
+            logDebug("BUFFER SAMPLES: Ch0[0]=" + juce::String(sample0_ch0, 6) + 
+                    ", Ch1[0]=" + juce::String(sample0_ch1, 6), LogLevel::DEBUG);
         }
         
-        logDebug("Audio: Processing via " + 
-                juce::String(selection == AudioRouter::ProcessorSelection::A ? "A" : "B") +
-                " - " + juce::String(bufferToFill.numSamples) + " samples, InputLevel: " +
-                juce::String(maxInputLevel, 3), 
-                LogLevel::DEBUG);
+        // Log periodically for debugging
+        static int audioCounter = 0;
+        if (audioCounter++ % 500 == 0)  // More frequent logging
+        {
+            auto selection = audioRouter ? audioRouter->getSelection() : AudioRouter::ProcessorSelection::A;
+            
+            logDebug("AUDIO FLOW: Input=" + juce::String(inputLevelBefore, 4) + 
+                    " -> [" + juce::String(selection == AudioRouter::ProcessorSelection::A ? "A" : "B") + "] -> " +
+                    "Output=" + juce::String(outputLevelAfter, 4) + 
+                    " (Channels: " + juce::String(buffer.getNumChannels()) + 
+                    ", Samples: " + juce::String(bufferToFill.numSamples) + ")", 
+                    LogLevel::INFO);
+        }
+        
+        // EMERGENCY DIAGNOSTIC: Force output to ensure buffer is being written
+        // If startSample is non-zero, we need to handle it properly
+        if (bufferToFill.startSample != 0)
+        {
+            logDebug("WARNING: startSample=" + juce::String(bufferToFill.startSample) + " (non-zero!)", LogLevel::WARNING);
+        }
     }
 }
 
@@ -439,6 +687,53 @@ void MainComponent::releaseResources()
 void MainComponent::paint(juce::Graphics& g)
 {
     g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+    paintLevelMeters(g);
+}
+
+void MainComponent::paintLevelMeters(juce::Graphics& g)
+{
+    auto bounds = getLocalBounds();
+    
+    // Position meters at the TOP after phase/device labels, before status
+    // Calculate position: 40 (phase) + 20 (device) + 25 (audio status) + 10 (spacing) = 95
+    auto meterArea = juce::Rectangle<int>(10, 95, bounds.getWidth() - 20, 60);
+    
+    // Divide into 4 sections for complete audio chain
+    int meterWidth = meterArea.getWidth() / 4;
+    
+    auto drawMeter = [&g](juce::Rectangle<int> area, float level, const juce::String& label, juce::Colour colour)
+    {
+        // Draw background
+        g.setColour(juce::Colours::black);
+        g.fillRect(area);
+        
+        // Draw border
+        g.setColour(juce::Colours::white);
+        g.drawRect(area, 2);
+        
+        // Draw level bar (fill proportional to level, max 1.0)
+        int barWidth = (int)(area.getWidth() * juce::jlimit(0.0f, 1.0f, level * 10.0f));  // Scale 10x for visibility
+        juce::Rectangle<int> barArea = area.reduced(4);
+        barArea.setWidth(barWidth);
+        
+        g.setColour(colour);
+        g.fillRect(barArea);
+        
+        // Draw label and value
+        g.setColour(juce::Colours::white);
+        g.setFont(12.0f);
+        g.drawFittedText(label, area.removeFromTop(18), juce::Justification::centred, 1);
+        
+        // Draw numeric value
+        g.setFont(11.0f);
+        g.drawFittedText(juce::String(level, 4), area, juce::Justification::centredBottom, 1);
+    };
+    
+    // Draw four meters showing complete audio chain
+    drawMeter(meterArea.removeFromLeft(meterWidth).reduced(3), inputLevel, "1. INPUT", juce::Colours::cyan);
+    drawMeter(meterArea.removeFromLeft(meterWidth).reduced(3), processedLevel, "2. DSP OUT", juce::Colours::yellow);
+    drawMeter(meterArea.removeFromLeft(meterWidth).reduced(3), outputLevel, "3. BUFFER", juce::Colours::orange);
+    drawMeter(meterArea.removeFromLeft(meterWidth).reduced(3), deviceOutputLevel, "4. DEVICE", juce::Colours::lime);
 }
 
 void MainComponent::resized()
@@ -448,8 +743,16 @@ void MainComponent::resized()
     // Phase indicator at top
     phaseLabel.setBounds(area.removeFromTop(40).reduced(10, 5));
     
+    // Audio device display
+    audioDeviceLabel.setBounds(area.removeFromTop(20).reduced(10, 2));
+    
     // Audio status
     audioStatusLabel.setBounds(area.removeFromTop(25).reduced(10, 2));
+    
+    area.removeFromTop(10);
+    
+    // Reserve space for level meters (painted in paint method)
+    area.removeFromTop(60);  // Height of level meters
     
     area.removeFromTop(10);
     
@@ -458,11 +761,10 @@ void MainComponent::resized()
     
     area.removeFromTop(10);
     
-    // Plugin loaders (side by side) + Auto-load button
-    auto loaderArea = area.removeFromTop(140);
+    // Plugin loaders (side by side)
+    auto loaderArea = area.removeFromTop(80);
     auto leftLoader = loaderArea.removeFromLeft(getWidth() / 2).reduced(10);
-    auto rightLoader = loaderArea.removeFromRight(getWidth() / 2).reduced(10);
-    auto centerLoader = loaderArea.reduced(10);
+    auto rightLoader = loaderArea.reduced(10);
     
     loadPluginAButton.setBounds(leftLoader.removeFromTop(40));
     pluginALabel.setBounds(leftLoader.removeFromTop(30));
@@ -470,7 +772,9 @@ void MainComponent::resized()
     loadPluginBButton.setBounds(rightLoader.removeFromTop(40));
     pluginBLabel.setBounds(rightLoader.removeFromTop(30));
     
-    autoLoadButton.setBounds(centerLoader.removeFromTop(40).reduced(100, 5));
+    // Auto-load button on its own row
+    auto autoLoadArea = area.removeFromTop(50).reduced(10, 5);
+    autoLoadButton.setBounds(autoLoadArea);
     
     area.removeFromTop(20);
     
@@ -583,7 +887,7 @@ void MainComponent::syncControlPanel()
                      LogLevel::WARNING);
             
             // Show warning in status
-            juce::String warning = "⚠ Parameter mismatch: A(" + juce::String(paramsA.size()) + 
+            juce::String warning = "âš  Parameter mismatch: A(" + juce::String(paramsA.size()) + 
                                   " params) vs B(" + juce::String(paramsB.size()) + " params)";
             statusLabel.setText(warning, juce::dontSendNotification);
             statusLabel.setColour(juce::Label::textColourId, juce::Colours::yellow);
@@ -694,8 +998,8 @@ void MainComponent::loadPluginB()
                     paramSync->setProcessorB(processorB.get());
                     
                     // Prepare for playback
-                    processorB->prepareToPlay(audioDeviceManager.getAudioDeviceSetup().sampleRate,
-                                             audioDeviceManager.getAudioDeviceSetup().bufferSize);
+                    processorB->prepareToPlay(deviceManager.getAudioDeviceSetup().sampleRate,
+                                             deviceManager.getAudioDeviceSetup().bufferSize);
                     
                     updateStatus();
                     updateWorkflowPhase();
@@ -737,3 +1041,14 @@ void MainComponent::updateStatus()
     
     statusLabel.setText(status, juce::dontSendNotification);
 }
+
+
+
+
+
+
+
+
+
+
+

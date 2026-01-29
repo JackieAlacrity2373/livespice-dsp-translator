@@ -22,11 +22,18 @@ void SchematicEditorComponent::createControls()
     
     auto params = processor->getParameters();
     
+    juce::Logger::writeToLog("SchematicEditorComponent: Creating controls from " + juce::String(params.size()) + " parameters");
+    
     for (const auto& paramInfo : params)
     {
+        juce::Logger::writeToLog("  Found parameter: " + paramInfo.id + " (" + paramInfo.name + ")");
+        
         // Skip bypass parameters
         if (paramInfo.id.containsIgnoreCase("bypass"))
+        {
+            juce::Logger::writeToLog("    Skipping bypass parameter");
             continue;
+        }
         
         auto ctrl = std::make_unique<ParameterControl>();
         ctrl->parameterId = paramInfo.id;
@@ -45,28 +52,53 @@ void SchematicEditorComponent::createControls()
         ctrl->slider->setValue(paramInfo.currentValue, juce::dontSendNotification);
         ctrl->slider->setTextBoxStyle(juce::Slider::NoTextBox, false, 50, 20);
         
-        // Store reference to parameterId for lambda capture
-        juce::String paramId = paramInfo.id;
-        
-        // Slider callback
-        ctrl->slider->onValueChange = [this, paramId]()
-        {
-            if (onParameterChanged && !controls.empty())
-            {
-                onParameterChanged(paramId, (float)controls[0]->slider->getValue());
-            }
-        };
-        
-        addAndMakeVisible(*ctrl->slider);
-        
-        // Value label
+        // Value label (created before slider callback so we can capture it)
         ctrl->valueLabel = std::make_unique<juce::Label>();
         ctrl->valueLabel->setText(juce::String(paramInfo.currentValue, 2), juce::dontSendNotification);
         ctrl->valueLabel->setJustificationType(juce::Justification::centred);
         ctrl->valueLabel->setFont(juce::Font(11.0f));
+        
+        // Store references for lambda capture
+        juce::String paramId = paramInfo.id;
+        auto* sliderPtr = ctrl->slider.get();
+        auto* valueLabelPtr = ctrl->valueLabel.get();
+        
+        // Slider callback
+        ctrl->slider->onValueChange = [this, paramId, sliderPtr, valueLabelPtr]()
+        {
+            float newValue = (float)sliderPtr->getValue();
+            
+            // Update value label
+            if (valueLabelPtr)
+                valueLabelPtr->setText(juce::String(newValue, 2), juce::dontSendNotification);
+            
+            // Notify processor
+            if (onParameterChanged)
+            {
+                onParameterChanged(paramId, newValue);
+            }
+        };
+        
+        addAndMakeVisible(*ctrl->slider);
         addAndMakeVisible(*ctrl->valueLabel);
         
         controls.push_back(std::move(ctrl));
+    }
+    
+    juce::Logger::writeToLog("SchematicEditorComponent: Created " + juce::String(controls.size()) + " controls");
+}
+
+void SchematicEditorComponent::updateParameterUI(const juce::String& parameterId, float value)
+{
+    // Find the control for this parameter and update its slider
+    for (auto& ctrl : controls)
+    {
+        if (ctrl->parameterId == parameterId)
+        {
+            ctrl->slider->setValue(value, juce::dontSendNotification);
+            ctrl->valueLabel->setText(juce::String(value, 2), juce::dontSendNotification);
+            break;
+        }
     }
 }
 
@@ -107,9 +139,6 @@ void SchematicEditorComponent::resized()
             .withY(area.getY() + row * (controlSize + spacing + 60))
             .withWidth(controlSize)
             .withHeight(controlSize + 60);
-        
-        if (controlArea.getBottom() > getHeight() - 20)
-            break;
         
         // Name label
         ctrl->nameLabel->setBounds(controlArea.removeFromTop(20));

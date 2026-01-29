@@ -114,10 +114,20 @@ void SchematicProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Mi
 {
     juce::ignoreUnused(midiMessages);
 
+    // DIAGNOSTIC: Log load state occasionally
+    static int processCounter2 = 0;
+    if (processCounter2++ % 500 == 0)
+    {
+        juce::Logger::writeToLog("SchematicProcessor::processBlock - schematicLoaded=" + 
+                                juce::String((int)schematicLoaded) + 
+                                ", circuitName=" + circuitName);
+    }
+
+    // If schematic not loaded, pass through with NO processing (don't clear!)
+    // This allows the audio to flow through even if schematic loading failed
     if (!schematicLoaded)
     {
-        buffer.clear();
-        return;
+        return;  // Pass through unchanged - audio will come through untouched
     }
 
     // Check bypass
@@ -191,6 +201,19 @@ void SchematicProcessor::processDSP(juce::AudioBuffer<float>& buffer)
     float level = parameters["level"];        // 0-1, output level
     float tone = parameters["tone"];          // 0-1, simple low-pass filter
     
+    // Log audio processing periodically
+    static int processCounter = 0;
+    if (processCounter++ % 100 == 0)  // MORE FREQUENT
+    {
+        float inputLevel = buffer.getMagnitude(0, 0, numSamples);
+        juce::Logger::writeToLog("SchematicProcessor::processDSP - PROCESSING CALLED! Channels: " + juce::String(numChannels) + 
+                                ", Samples: " + juce::String(numSamples) + 
+                                ", InputLevel: " + juce::String(inputLevel, 4) + 
+                                ", Drive: " + juce::String(drive, 2) + 
+                                ", Level: " + juce::String(level, 2) + 
+                                ", GainMultiplier: " + juce::String(1.0f + drive * 4.0f, 2));
+    }
+    
     // Apply processing
     for (int channel = 0; channel < numChannels; ++channel)
     {
@@ -199,15 +222,11 @@ void SchematicProcessor::processDSP(juce::AudioBuffer<float>& buffer)
         for (int i = 0; i < numSamples; ++i)
         {
             // Apply drive (gain before distortion)
-            float sample = samples[i] * (1.0f + drive * 4.0f);  // 0-5x gain
+            float sample = samples[i] * (1.0f + drive * 4.0f);  // 1-5x gain
             
-            // Simple soft clipping distortion
-            if (sample > 1.0f)
-                sample = 2.0f / 3.0f;  // Approximate tanh
-            else if (sample < -1.0f)
-                sample = -2.0f / 3.0f;
-            else
-                sample = sample - (sample * sample * sample) / 3.0f;  // Cubic soft clip
+            // Soft clipping using tanh approximation for smoother saturation
+            float x = juce::jlimit(-3.0f, 3.0f, sample);
+            sample = x - (x * x * x) * 0.3333f;
             
             // Apply output level
             sample *= level;

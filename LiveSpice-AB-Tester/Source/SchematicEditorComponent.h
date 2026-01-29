@@ -18,6 +18,9 @@ public:
     void paint(juce::Graphics& g) override;
     void resized() override;
 
+    // Update UI when parameters change externally
+    void updateParameterUI(const juce::String& parameterId, float value);
+
     // Callback for parameter changes
     std::function<void(const juce::String& parameterId, float value)> onParameterChanged;
 

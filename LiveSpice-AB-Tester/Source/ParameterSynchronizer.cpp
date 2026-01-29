@@ -24,10 +24,19 @@ void ParameterSynchronizer::setParameter(const juce::String& parameterId, float 
     bool foundInA = false;
     bool foundInB = false;
     
+    logDebug("ParameterSynchronizer::setParameter(" + parameterId + ", " + juce::String(value, 3) + 
+             ", notifyOther=" + juce::String(notifyOther ? "true" : "false") + 
+             ", linkingEnabled=" + juce::String(linkingEnabled ? "true" : "false") + ")", LogLevel::INFO);
+    
     // Update processor A
     if (processorA && processorA->isLoaded())
     {
         foundInA = processorA->setParameter(parameterId, value);
+        logDebug("  Processor A: " + juce::String(foundInA ? "UPDATED" : "NOT FOUND"), LogLevel::INFO);
+    }
+    else
+    {
+        logDebug("  Processor A: NOT LOADED", LogLevel::INFO);
     }
     
     // Update processor B (only if linking enabled and parameter exists)

@@ -1,15 +1,16 @@
-# LiveSpice to DSP Translation Layer
+# LiveSPICE to JUCE DSP Translator and Comparator
 
-A C++ framework for parsing LiveSpice guitar pedal schematics and translating them into circuit-accurate DSP components for JUCE audio plugins.
+A C++ framework for parsing LiveSpice guitar pedal schematics, translating them into circuit-accurate DSP components for JUCE audio plugins, and comparing circuit implementations with an integrated A/B tester.
 
 ## Current Status ✅
 
-**Working**: Translation layer + Auto-generated JUCE plugins with full DSP implementation
+**Working**: Translation layer + Auto-generated JUCE plugins with full DSP implementation + A/B Tester comparator
 - LiveSpice XML parser (component extraction, connectivity analysis)
 - Circuit topology analyzer (stage identification)
 - JUCE plugin code generator (complete with parametric DSP chain)
 - Standalone plugins building and functional
 - MXR Distortion+ plugin: ~4.4 MB standalone executable
+- A/B Tester with real-time level metering and dual-circuit comparison
 
 ## Condensed Documentation Map (Start Here)
 

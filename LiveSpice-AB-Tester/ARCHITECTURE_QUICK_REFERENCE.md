@@ -130,6 +130,17 @@
 
 ---
 
+## 1.1 Debug Audio Launch Flag
+
+The A/B Tester includes an optional debug mode for audio diagnostics (extra logs, test tone, buffer probes, and temporary output gain). It is **disabled by default** and only enabled via a launch flag:
+
+- `--debug-audio` (preferred)
+- `--debug`
+
+When the flag is **not** present, the app runs with normal processing and minimal logging.
+
+---
+
 ## 2. Data Flow Sequence Diagrams
 
 ### 2.1 Initialization Sequence

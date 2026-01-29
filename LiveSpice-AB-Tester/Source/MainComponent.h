@@ -30,6 +30,7 @@ public:
     void releaseResources() override;
 
     void paint(juce::Graphics& g) override;
+    void paintLevelMeters(juce::Graphics& g);  // Draw real-time level indicators
     void resized() override;
 
     void timerCallback() override;
@@ -52,8 +53,6 @@ private:
 
     WorkflowPhase currentPhase{WorkflowPhase::PreConfigured};
 
-    // Audio device manager
-    juce::AudioDeviceManager audioDeviceManager;
     std::unique_ptr<juce::DocumentWindow> audioSettingsWindow;
     
     // Hardcoded paths for testing (VST3 plugins)
@@ -92,17 +91,25 @@ private:
 
     std::unique_ptr<EditorWindow> editorWindowA;
     std::unique_ptr<EditorWindow> editorWindowB;
+    SchematicEditorComponent* schematicEditor{nullptr};  // Non-owning pointer for UI updates
 
     // Status display
     juce::Label statusLabel;
     juce::Label phaseLabel;
     juce::Label audioStatusLabel;
+    juce::Label audioDeviceLabel;  // Display current audio device
 
     // Audio buffers for processing
     juce::MidiBuffer midiBuffer;
     juce::AudioBuffer<float> inputBuffer;  // Capture input from audio interface
     double currentSampleRate{44100.0};
     int currentBlockSize{512};
+
+    // Real-time level tracking for visual display
+    std::atomic<float> inputLevel{0.0f};
+    std::atomic<float> processedLevel{0.0f};
+    std::atomic<float> outputLevel{0.0f};
+    std::atomic<float> deviceOutputLevel{0.0f};
 
     // Current state
     bool isPluginALoaded{false};
