@@ -99,10 +99,8 @@ private:
 
     // Stage 0: Input Buffer
     // DSP Mapping: Capacitor: 10.000000nF
-    // [BETA] Tone stack filters (low/mid/high)
-    juce::dsp::IIR::Filter<float> stage0_toneLow;
-    juce::dsp::IIR::Filter<float> stage0_toneMid;
-    juce::dsp::IIR::Filter<float> stage0_toneHigh;
+    LiveSpiceDSP::ResistorProcessor stage0_resistor;
+    LiveSpiceDSP::CapacitorProcessor stage0_capacitor;
 
     // Stage 1: Op-Amp Clipping Stage
     // DSP Mapping: Op-Amp: Circuit.IdealOpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null (Behavioral model)
@@ -121,11 +119,6 @@ private:
     // DSP Mapping: Resistor: 1.000000MΩ
     // [BETA] Optimized IIR filter for RC pattern
     juce::dsp::IIR::Filter<float> stage3_lpf;
-
-    // [BETA] Tone stack filters (fallback)
-    juce::dsp::IIR::Filter<float> stage2_toneLow;
-    juce::dsp::IIR::Filter<float> stage2_toneMid;
-    juce::dsp::IIR::Filter<float> stage2_toneHigh;
 
     // ========================================================================
     // Nonlinear Component Models

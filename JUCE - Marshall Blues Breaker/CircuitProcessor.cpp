@@ -85,13 +85,9 @@ void CircuitProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     // ========================================================================
 
     // Stage 0: Input Buffer
-    // [BETA] Tone stack filter setup
-    *stage0_toneLow.state = *juce::dsp::IIR::Coefficients<float>::makeLowShelf(sampleRate, 120.0f, 0.707f, juce::Decibels::decibelsToGain(3.0f));
-    *stage0_toneMid.state = *juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, 1000.0f, 0.707f, juce::Decibels::decibelsToGain(-2.0f));
-    *stage0_toneHigh.state = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, 4500.0f, 0.707f, juce::Decibels::decibelsToGain(3.0f));
-    stage0_toneLow.prepare(spec);
-    stage0_toneMid.prepare(spec);
-    stage0_toneHigh.prepare(spec);
+    // RC High-Pass Filter: f = 15.9155 Hz
+    stage0_resistor.prepare(1e+06);
+    stage0_capacitor.prepare(1e-08, 0.1); // 1e-08 F with 0.1Ω ESR
 
     // Stage 1: Op-Amp Clipping Stage
     // Diode clipping with Shockley equation
@@ -145,12 +141,8 @@ void CircuitProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
             
             // Stage 0: Input Buffer
             // [BETA] Pattern: Tone Stack (confidence: 0.9)
-            // [BETA] Tone stack (low/mid/high shelves)
-            signal = stage0_toneLow.processSample(signal);
-            signal = stage0_toneMid.processSample(signal);
-            signal = stage0_toneHigh.processSample(signal);
-
-            // Stage 1: Op-Amp Clipping Stage
+            // Unknown pattern strategy: tone_stack
+            // RC filter using LiveSPICE components\n            stage0_resistor.process(signal);\n            stage0_capacitor.process(signal, currentSampleRate);\n            signal = (float)stage0_capacitor.getVoltage();\n\n            // Stage 1: Op-Amp Clipping Stage
             // [BETA] Pattern: Op-Amp Diode Clipping (confidence: 0.95)
             // [BETA] Nonlinear clipper (already optimized)
             // Using component-aware diode models with Newton-Raphson
@@ -163,7 +155,7 @@ void CircuitProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
             signal = D4_clipper.processSample(signal);
 
             // Stage 2: Tone Control
-            // [BETA] Tone stack (forced)
+            // [BETA] Tone stack (low/mid/high shelves)
             signal = stage2_toneLow.processSample(signal);
             signal = stage2_toneMid.processSample(signal);
             signal = stage2_toneHigh.processSample(signal);

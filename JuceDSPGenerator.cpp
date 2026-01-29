@@ -142,12 +142,12 @@ namespace LiveSpice {
                 return true;
             }
 
-            if (stage.patternStrategy == "tone_stack") {
-                return true;
-            }
-
-            if (stage.name.find("Tone Control") != std::string::npos) {
-                return true;
+            if (stage.type == StageType::InputBuffer
+                || stage.type == StageType::OutputBuffer
+                || stage.type == StageType::HighPassFilter
+                || stage.type == StageType::LowPassFilter
+                || stage.type == StageType::BandPassFilter) {
+                return false;
             }
 
             bool hasPot = false;
@@ -173,6 +173,14 @@ namespace LiveSpice {
                 if (hasPot && capCount >= 2) {
                     break;
                 }
+            }
+
+            if (stage.patternStrategy == "tone_stack") {
+                return hasPot;
+            }
+
+            if (stage.name.find("Tone Control") != std::string::npos) {
+                return true;
             }
 
             return hasPot && capCount >= 2;
@@ -603,25 +611,28 @@ void CircuitProcessor::changeProgramName (int, const juce::String&)
 
     std::string JuceDSPGenerator::generateDSPStages(const std::vector<CircuitStage>& stages) {
         std::stringstream ss;
-        
+
         ss << "// DSP Stages Generated from Circuit Analysis:\n";
         ss << "// Total stages: " << stages.size() << "\n\n";
-        
+
         for (size_t i = 0; i < stages.size(); ++i) {
             const auto& stage = stages[i];
             ss << "// Stage " << i << ": " << stage.name << "\n";
-            // Beta mode: Initialize optimized filters based on pattern
-            const bool isToneControl = isLikelyToneStackStage(stage);
-            if (isToneControl) {
-                ss << "    // [BETA] Tone stack filter setup (forced)\n";
-                ss << "    *stage" << i << "_toneLow.state = *juce::dsp::IIR::Coefficients<float>::makeLowShelf(sampleRate, 120.0f, 0.707f, juce::Decibels::decibelsToGain(3.0f));\n";
-                ss << "    *stage" << i << "_toneMid.state = *juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, 1000.0f, 0.707f, juce::Decibels::decibelsToGain(-2.0f));\n";
-                ss << "    *stage" << i << "_toneHigh.state = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, 4500.0f, 0.707f, juce::Decibels::decibelsToGain(3.0f));\n";
-                ss << "    stage" << i << "_toneLow.prepare(spec);\n";
-                ss << "    stage" << i << "_toneMid.prepare(spec);\n";
-                ss << "    stage" << i << "_toneHigh.prepare(spec);\n\n";
-                continue;
-        
+            ss << "// DSP Mapping: " << stage.dspDescription << "\n";
+
+            if (m_useBetaFeatures) {
+                if (isLikelyToneStackStage(stage)) {
+                    ss << "// [BETA] Tone stack (low/mid/high shelves)\n";
+                } else if (stage.patternStrategy == "cascaded_biquad" && stage.patternConfidence >= 0.8) {
+                    ss << "// [BETA] Optimized IIR filter for RC pattern\n";
+                } else if (stage.patternStrategy == "nonlinear_clipper") {
+                    ss << "// [BETA] Nonlinear clipper pattern\n";
+                }
+            }
+
+            ss << "\n";
+        }
+
         return ss.str();
     }
 

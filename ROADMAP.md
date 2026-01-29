@@ -17,6 +17,11 @@ This roadmap outlines the strategic evolution of the LiveSPICE to JUCE DSP trans
 - ✅ Standalone plugin compilation and deployment
 - ✅ A/B comparison testing with real-time level metering
 
+**Recent Updates (January 29, 2026):**
+- ✅ Centralized tone-stack detection to prevent duplicate filter declarations
+- ✅ Eliminated false positives (Input Buffer no longer tagged as tone stack)
+- ✅ Regenerated Marshall Blues Breaker output to verify clean tone-stack handling
+
 **Target Outcome (18 months):** Production-ready circuit emulation engine capable of generating authentic guitar pedal plugins with ±5% accuracy compared to analog hardware.
 
 ---
