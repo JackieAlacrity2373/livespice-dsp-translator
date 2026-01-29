@@ -1,0 +1,102 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build (g++)",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-std=c++17",
+                "-Wall",
+                "-Wextra",
+                "-O2",
+                "Livespice_to_DSP.cpp",
+                "LiveSpiceParser.cpp",
+                "CircuitAnalyzer.cpp",
+                "CircuitVisualizer.cpp",
+                "CircuitDiagnostics.cpp",
+                "LiveSpiceConnectionMapper.cpp",
+                "JuceDSPGenerator.cpp",
+                "-o",
+                "livespice-translator",
+                "-lm"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$gcc",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "build & run",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "g++ -std=c++17 -Wall -Wextra -O2 Livespice_to_DSP.cpp LiveSpiceParser.cpp CircuitAnalyzer.cpp CircuitVisualizer.cpp CircuitDiagnostics.cpp LiveSpiceConnectionMapper.cpp JuceDSPGenerator.cpp -o livespice-translator -lm && ./livespice-translator"
+            ],
+            "group": {
+                "kind": "build"
+            },
+            "problemMatcher": "$gcc",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "run",
+            "type": "shell",
+            "command": ".\\livespice-translator",
+            "args": [],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "run with file argument",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-Command",
+                ".\\livespice-translator \"example pedals/Boss Super Overdrive SD-1.schx\""
+            ],
+            "group": {
+                "kind": "test"
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "clean",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-Command",
+                "Remove-Item -Force livespice-translator.exe -ErrorAction SilentlyContinue; Remove-Item -Force livespice-translator -ErrorAction SilentlyContinue; Write-Host 'Clean complete'"
+            ],
+            "group": {
+                "kind": "build"
+            }
+        }
+    ]
+}

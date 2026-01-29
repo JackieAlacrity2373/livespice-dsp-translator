@@ -1,0 +1,41 @@
+# Build artifacts
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+
+# Compiled output
+livespice-translator
+livespice-translator.exe
+build/
+bin/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# IDE
+.vscode/settings.json
+.vscode/launch.json
+*.vcxproj
+*.vcxproj.filters
+*.sln
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies
+JUCE/
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+
+# Test outputs
+*.log
