@@ -6,7 +6,6 @@
 */
 
 #include "CircuitProcessor.h"
-#include "CircuitProcessorEditor.h"
 
 CircuitProcessor::CircuitProcessor()
     : AudioProcessor (BusesProperties()
@@ -15,8 +14,6 @@ CircuitProcessor::CircuitProcessor()
 , apvts(*this, nullptr, "Parameters", createParameterLayout())
 {
     // Initialize parameter pointers
-    driveParam = apvts.getRawParameterValue("drive");
-    levelParam = apvts.getRawParameterValue("level");
 }
 
 CircuitProcessor::~CircuitProcessor()
@@ -84,20 +81,9 @@ void CircuitProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     // ========================================================================
 
     // Stage 0: Input Buffer
-    // RC High-Pass Filter: f = 15915.5 Hz
-    stage0_resistor.prepare(10000);
-    stage0_capacitor.prepare(1e-09, 0.1); // 1e-09 F with 0.1Ω ESR
-
-    // Stage 1: Op-Amp Clipping Stage
-    // Diode clipping with Shockley equation
-    stage1_diode1.prepare("1N4148", 25.0); // Silicon diode, 25°C
-    stage1_diode2.prepare("1N4148", 25.0);
-    stage1_opamp.prepare("TL072", sampleRate); // Dual op-amp
-
-    // Stage 2: RC Low-Pass Filter
-    // RC Low-Pass Filter: fc = 15915.5 Hz
-    stage2_resistor.prepare(10000);
-    stage2_capacitor.prepare(1e-08, 0.1);
+    // RC High-Pass Filter: f = 72 Hz
+    stage0_resistor.prepare(100000);
+    stage0_capacitor.prepare(1e-08, 0.1); // 1e-08 F with 0.1Ω ESR
 
 }
 
@@ -111,8 +97,6 @@ void CircuitProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
         buffer.clear (i, 0, buffer.getNumSamples());
 
     // Get current parameter values
-    float driveValue = driveParam->load();
-    float levelValue = levelParam->load();
 
     // ========================================================================
     // LiveSPICE Component-Based DSP Processing
@@ -133,20 +117,6 @@ void CircuitProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
             stage0_capacitor.process(signal, currentSampleRate);
             signal = (float)stage0_capacitor.getVoltage();
 
-            // Stage 1: Op-Amp Clipping Stage
-            // Diode clipper with Shockley equation
-            stage1_diode1.process(signal);
-            stage1_diode2.process(-signal);
-            double clipped = stage1_diode1.getCurrent() - stage1_diode2.getCurrent();
-            stage1_opamp.process(0.0, clipped);
-            signal = (float)stage1_opamp.getOutputVoltage();
-
-            // Stage 2: RC Low-Pass Filter
-            // RC filter using LiveSPICE components
-            stage2_resistor.process(signal);
-            stage2_capacitor.process(signal, currentSampleRate);
-            signal = (float)stage2_capacitor.getVoltage();
-
             channelData[sample] = signal;
         }
     }
@@ -164,7 +134,7 @@ void CircuitProcessor::releaseResources()
 
 juce::AudioProcessorEditor* CircuitProcessor::createEditor()
 {
-    return new CircuitProcessorEditor (*this, apvts);
+    return new juce::GenericAudioProcessorEditor (*this);
 }
 
 bool CircuitProcessor::hasEditor() const

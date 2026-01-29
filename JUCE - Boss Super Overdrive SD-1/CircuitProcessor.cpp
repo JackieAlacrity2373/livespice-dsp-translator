@@ -6,6 +6,7 @@
 */
 
 #include "CircuitProcessor.h"
+#include "CircuitProcessorEditor.h"
 
 CircuitProcessor::CircuitProcessor()
     : AudioProcessor (BusesProperties()
@@ -165,7 +166,7 @@ void CircuitProcessor::releaseResources()
 
 juce::AudioProcessorEditor* CircuitProcessor::createEditor()
 {
-    return new juce::GenericAudioProcessorEditor (*this);
+    return new CircuitProcessorEditor (*this, apvts);
 }
 
 bool CircuitProcessor::hasEditor() const

@@ -6,7 +6,6 @@
 */
 
 #include "CircuitProcessor.h"
-#include "CircuitProcessorEditor.h"
 
 CircuitProcessor::CircuitProcessor()
     : AudioProcessor (BusesProperties()
@@ -17,6 +16,7 @@ CircuitProcessor::CircuitProcessor()
     // Initialize parameter pointers
     driveParam = apvts.getRawParameterValue("drive");
     levelParam = apvts.getRawParameterValue("level");
+    toneParam = apvts.getRawParameterValue("tone");
 }
 
 CircuitProcessor::~CircuitProcessor()
@@ -84,9 +84,9 @@ void CircuitProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     // ========================================================================
 
     // Stage 0: Input Buffer
-    // RC High-Pass Filter: f = 15915.5 Hz
-    stage0_resistor.prepare(10000);
-    stage0_capacitor.prepare(1e-09, 0.1); // 1e-09 F with 0.1Ω ESR
+    // RC High-Pass Filter: f = 15.9155 Hz
+    stage0_resistor.prepare(1e+06);
+    stage0_capacitor.prepare(1e-08, 0.1); // 1e-08 F with 0.1Ω ESR
 
     // Stage 1: Op-Amp Clipping Stage
     // Diode clipping with Shockley equation
@@ -95,7 +95,7 @@ void CircuitProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     stage1_opamp.prepare("TL072", sampleRate); // Dual op-amp
 
     // Stage 2: RC Low-Pass Filter
-    // RC Low-Pass Filter: fc = 15915.5 Hz
+    // RC Low-Pass Filter: fc = 15.9155 Hz
     stage2_resistor.prepare(10000);
     stage2_capacitor.prepare(1e-08, 0.1);
 
@@ -113,6 +113,7 @@ void CircuitProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
     // Get current parameter values
     float driveValue = driveParam->load();
     float levelValue = levelParam->load();
+    float toneValue = toneParam->load();
 
     // ========================================================================
     // LiveSPICE Component-Based DSP Processing
@@ -164,7 +165,7 @@ void CircuitProcessor::releaseResources()
 
 juce::AudioProcessorEditor* CircuitProcessor::createEditor()
 {
-    return new CircuitProcessorEditor (*this, apvts);
+    return new juce::GenericAudioProcessorEditor (*this);
 }
 
 bool CircuitProcessor::hasEditor() const

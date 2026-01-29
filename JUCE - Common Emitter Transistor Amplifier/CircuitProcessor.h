@@ -10,7 +10,6 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_dsp/juce_dsp.h>
-#include <juce_gui_basics/juce_gui_basics.h>
 #include <cmath>
 
 // LiveSPICE Component Library
@@ -53,24 +52,6 @@ private:
     {
         juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
-        // Drive (Variable Resistor)
-        layout.add(std::make_unique<juce::AudioParameterFloat>(
-            juce::ParameterID{"drive", 1},
-            "Drive",
-            juce::NormalisableRange<float>(
-                0.0f,
-                1.0f),
-            0.5f));
-
-        // Level (Potentiometer)
-        layout.add(std::make_unique<juce::AudioParameterFloat>(
-            juce::ParameterID{"level", 1},
-            "Level",
-            juce::NormalisableRange<float>(
-                0.0f,
-                1.0f),
-            1.0f));
-
         return layout;
     }
 
@@ -79,20 +60,14 @@ private:
     // ========================================================================
 
     // Stage 0: Input Buffer
-    // DSP Mapping: Capacitor: 1.000000nF
+    // DSP Mapping: Capacitor: 250.000000pF
     LiveSpiceDSP::ResistorProcessor stage0_resistor;
     LiveSpiceDSP::CapacitorProcessor stage0_capacitor;
 
-    // Stage 1: Op-Amp Clipping Stage
-    // DSP Mapping: Op-Amp: UA741 (Behavioral model)
-    LiveSpiceDSP::DiodeProcessor stage1_diode1;
-    LiveSpiceDSP::DiodeProcessor stage1_diode2;
-    LiveSpiceDSP::OpAmpProcessor stage1_opamp;
-
-    // Stage 2: RC Low-Pass Filter
-    // DSP Mapping: Resistor: 10.000000kΩ
-    LiveSpiceDSP::ResistorProcessor stage2_resistor;
-    LiveSpiceDSP::CapacitorProcessor stage2_capacitor;
+    // Stage 1: RC Low-Pass Filter
+    // DSP Mapping: Resistor: 100.000000kΩ
+    LiveSpiceDSP::ResistorProcessor stage1_resistor;
+    LiveSpiceDSP::CapacitorProcessor stage1_capacitor;
 
     // ========================================================================
     // APVTS - AudioProcessorValueTreeState for parameter management
@@ -100,14 +75,9 @@ private:
     juce::AudioProcessorValueTreeState apvts;
 
     // Parameter pointers for fast access
-    std::atomic<float>* driveParam = nullptr;
-    std::atomic<float>* levelParam = nullptr;
 
     // Sample rate for DSP processing
     double currentSampleRate = 44100.0;
-
-    // Make APVTS accessible to editor
-    juce::AudioProcessorValueTreeState& getAPVTS() { return apvts; }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CircuitProcessor)
 };

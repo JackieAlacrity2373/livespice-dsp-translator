@@ -27,7 +27,9 @@ juce_add_plugin(MXR_Distortion__
 # Add source files
 target_sources(MXR_Distortion__ PRIVATE
     CircuitProcessor.h
-    CircuitProcessor.cpp)
+    CircuitProcessor.cpp
+    CircuitProcessorEditor.h
+    CircuitProcessorEditor.cpp)
 
 # Link JUCE
 target_link_libraries(MXR_Distortion__ PRIVATE

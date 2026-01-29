@@ -10,11 +10,12 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_dsp/juce_dsp.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 #include <cmath>
 
 // LiveSPICE Component Library
-#include "../../third_party/livespice-components/ComponentModels.h"
-#include "../../third_party/livespice-components/DSPImplementations.h"
+#include "../third_party/livespice-components/ComponentModels.h"
+#include "../third_party/livespice-components/DSPImplementations.h"
 
 class CircuitProcessor : public juce::AudioProcessor
 {
@@ -56,28 +57,22 @@ private:
         layout.add(std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID{"drive", 1},
             "Drive",
-            juce::NormalisableRange<float>(
-                0f,
-                1f),
+            juce::NormalisableRange<float>(0.0f, 1.0f),
             0.5f));
 
         // Level (Potentiometer)
         layout.add(std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID{"level", 1},
             "Level",
-            juce::NormalisableRange<float>(
-                0f,
-                1f),
+            juce::NormalisableRange<float>(0.0f, 1.0f),
             0.5f));
 
         // Tone (Potentiometer)
         layout.add(std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID{"tone", 1},
             "Tone",
-            juce::NormalisableRange<float>(
-                0f,
-                1f),
-            1f));
+            juce::NormalisableRange<float>(0.0f, 1.0f),
+            1.0f));
 
         return layout;
     }
@@ -114,6 +109,9 @@ private:
 
     // Sample rate for DSP processing
     double currentSampleRate = 44100.0;
+
+    // Make APVTS accessible to editor
+    juce::AudioProcessorValueTreeState& getAPVTS() { return apvts; }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CircuitProcessor)
 };

@@ -1,17 +1,17 @@
 cmake_minimum_required(VERSION 3.16)
-project(Boss_Super_Overdrive_SD_1 VERSION 1.0.0 LANGUAGES CXX)
+project(Bridge_Rectifier VERSION 1.0.0 LANGUAGES CXX)
 
-# JUCE library - correct path relative to this CMakeLists.txt
+# JUCE library
 set(JUCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/JUCE")
 
 # Add JUCE as subdirectory
 add_subdirectory("${JUCE_PATH}" juce)
 
 # Create plugin target
-juce_add_plugin(Boss_Super_Overdrive_SD_1
-    PRODUCT_NAME "Boss Super Overdrive SD-1"
+juce_add_plugin(Bridge_Rectifier
+    PRODUCT_NAME "Bridge Rectifier"
     COMPANY_NAME "LiveSpice DSP"
-    BUNDLE_ID "com.livespicedsp.bossd1"
+    BUNDLE_ID "com.livespicedsp.bridgerectifier"
     VERSION 1.0.0
     DESCRIPTION "Auto-generated from LiveSpice circuit schematic"
     PLUGIN_MANUFACTURER_CODE LSDP
@@ -25,14 +25,12 @@ juce_add_plugin(Boss_Super_Overdrive_SD_1
     COPY_PLUGIN_AFTER_BUILD TRUE)
 
 # Add source files
-target_sources(Boss_Super_Overdrive_SD_1 PRIVATE
+target_sources(Bridge_Rectifier PRIVATE
     CircuitProcessor.h
-    CircuitProcessor.cpp
-    CircuitProcessorEditor.h
-    CircuitProcessorEditor.cpp)
+    CircuitProcessor.cpp)
 
 # Link JUCE
-target_link_libraries(Boss_Super_Overdrive_SD_1 PRIVATE
+target_link_libraries(Bridge_Rectifier PRIVATE
     juce::juce_core
     juce::juce_audio_basics
     juce::juce_audio_processors
@@ -42,6 +40,6 @@ target_link_libraries(Boss_Super_Overdrive_SD_1 PRIVATE
     juce::juce_audio_devices)
 
 # Set C++ standard
-set_target_properties(Boss_Super_Overdrive_SD_1 PROPERTIES
+set_target_properties(Bridge_Rectifier PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON)
