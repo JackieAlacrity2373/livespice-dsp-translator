@@ -17,6 +17,7 @@
                 "CircuitDiagnostics.cpp",
                 "LiveSpiceConnectionMapper.cpp",
                 "JuceDSPGenerator.cpp",
+                "TopologyPatterns.cpp",
                 "-o",
                 "livespice-translator",
                 "-lm"
@@ -39,7 +40,7 @@
             "command": "bash",
             "args": [
                 "-c",
-                "g++ -std=c++17 -Wall -Wextra -O2 Livespice_to_DSP.cpp LiveSpiceParser.cpp CircuitAnalyzer.cpp CircuitVisualizer.cpp CircuitDiagnostics.cpp LiveSpiceConnectionMapper.cpp JuceDSPGenerator.cpp -o livespice-translator -lm && ./livespice-translator"
+                "g++ -std=c++17 -Wall -Wextra -O2 Livespice_to_DSP.cpp LiveSpiceParser.cpp CircuitAnalyzer.cpp CircuitVisualizer.cpp CircuitDiagnostics.cpp LiveSpiceConnectionMapper.cpp JuceDSPGenerator.cpp TopologyPatterns.cpp -o livespice-translator -lm && ./livespice-translator"
             ],
             "group": {
                 "kind": "build"

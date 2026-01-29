@@ -11,12 +11,9 @@ CircuitProcessor::CircuitProcessor()
     : AudioProcessor (BusesProperties()
                      .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
                      .withOutput ("Output", juce::AudioChannelSet::stereo(), true))
-, apvts(*this, nullptr, "Parameters", createParameterLayout()), D1_clipper(Nonlinear::ComponentDB::getDiodeDB().getOrDefault("1N4148"), Nonlinear::DiodeClippingStage::TopologyType::BackToBackDiodes, 10000.0f), D2_clipper(Nonlinear::ComponentDB::getDiodeDB().getOrDefault("1N4148"), Nonlinear::DiodeClippingStage::TopologyType::BackToBackDiodes, 10000.0f), D3_clipper(Nonlinear::ComponentDB::getDiodeDB().getOrDefault("1N4148"), Nonlinear::DiodeClippingStage::TopologyType::BackToBackDiodes, 10000.0f), D4_clipper(Nonlinear::ComponentDB::getDiodeDB().getOrDefault("1N4148"), Nonlinear::DiodeClippingStage::TopologyType::BackToBackDiodes, 10000.0f)
+, apvts(*this, nullptr, "Parameters", createParameterLayout()), M1_amp(Nonlinear::ComponentDB::getFETDB().getOrDefault("2N7000"))
 {
     // Initialize parameter pointers
-    driveParam = apvts.getRawParameterValue("drive");
-    levelParam = apvts.getRawParameterValue("level");
-    toneParam = apvts.getRawParameterValue("tone");
     bypassParam = apvts.getRawParameterValue("bypass");
 }
 
@@ -85,33 +82,15 @@ void CircuitProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     // ========================================================================
 
     // Stage 0: Input Buffer
-    // [BETA] Tone stack filter setup
-    *stage0_toneLow.state = *juce::dsp::IIR::Coefficients<float>::makeLowShelf(sampleRate, 120.0f, 0.707f, juce::Decibels::decibelsToGain(3.0f));
-    *stage0_toneMid.state = *juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, 1000.0f, 0.707f, juce::Decibels::decibelsToGain(-2.0f));
-    *stage0_toneHigh.state = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, 4500.0f, 0.707f, juce::Decibels::decibelsToGain(3.0f));
-    stage0_toneLow.prepare(spec);
-    stage0_toneMid.prepare(spec);
-    stage0_toneHigh.prepare(spec);
+    // [BETA] No frequency params, skipping filter init
 
-    // Stage 1: Op-Amp Clipping Stage
-    // Diode clipping with Shockley equation
-    stage1_diode1.prepare("1N4148", 25.0); // Silicon diode, 25°C
-    stage1_diode2.prepare("1N4148", 25.0);
-    stage1_opamp.prepare("TL072", sampleRate); // Dual op-amp
+    // Stage 1: Transistor Gain Stage
+    stage1_gain.setGainLinear(1.0f);
+    stage1_gain.prepare(spec);
 
-    // Stage 2: Tone Control
-    // [BETA] Tone stack filter setup
-    *stage2_toneLow.state = *juce::dsp::IIR::Coefficients<float>::makeLowShelf(sampleRate, 120.0f, 0.707f, juce::Decibels::decibelsToGain(3.0f));
-    *stage2_toneMid.state = *juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, 1000.0f, 0.707f, juce::Decibels::decibelsToGain(-2.0f));
-    *stage2_toneHigh.state = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, 4500.0f, 0.707f, juce::Decibels::decibelsToGain(3.0f));
-    stage2_toneLow.prepare(spec);
-    stage2_toneMid.prepare(spec);
-    stage2_toneHigh.prepare(spec);
-
-    // Stage 3: RC Low-Pass Filter
-    // [BETA] Optimized low-pass biquad
-    *stage3_lpf.state = *juce::dsp::IIR::Coefficients<float>::makeLowPass(sampleRate, 15.9155f);
-    stage3_lpf.prepare(spec);
+    // Stage 2: Output Buffer
+    stage2_gain.setGainLinear(0.5f); // 50% output level
+    stage2_gain.prepare(spec);
 
 }
 
@@ -125,9 +104,6 @@ void CircuitProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
         buffer.clear (i, 0, buffer.getNumSamples());
 
     // Get current parameter values
-    float driveValue = driveParam->load();
-    float levelValue = levelParam->load();
-    float toneValue = toneParam->load();
     float bypassValue = bypassParam->load();
 
     // ========================================================================
@@ -144,37 +120,17 @@ void CircuitProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
             float signal = channelData[sample];
             
             // Stage 0: Input Buffer
-            // [BETA] Pattern: Tone Stack (confidence: 0.9)
-            // [BETA] Tone stack (low/mid/high shelves)
-            signal = stage0_toneLow.processSample(signal);
-            signal = stage0_toneMid.processSample(signal);
-            signal = stage0_toneHigh.processSample(signal);
-
-            // Stage 1: Op-Amp Clipping Stage
-            // [BETA] Pattern: Op-Amp Diode Clipping (confidence: 0.95)
-            // [BETA] Nonlinear clipper (already optimized)
-            // Using component-aware diode models with Newton-Raphson
-            // (Diode clipping applied after stage processing)
-
-            // Nonlinear component processing
-            signal = D1_clipper.processSample(signal);
-            signal = D2_clipper.processSample(signal);
-            signal = D3_clipper.processSample(signal);
-            signal = D4_clipper.processSample(signal);
-
-            // Stage 2: Tone Control
-            // [BETA] Tone stack (forced)
-            signal = stage2_toneLow.processSample(signal);
-            signal = stage2_toneMid.processSample(signal);
-            signal = stage2_toneHigh.processSample(signal);
-
-            // Stage 3: RC Low-Pass Filter
-            // [BETA] Pattern: Passive RC Low-Pass (confidence: 0.9)
+            // [BETA] Pattern: Passive RC High-Pass (confidence: 0.85)
             // [BETA] Optimized biquad for RC filter pattern
-            // Low-pass biquad: fc = 15.9155 Hz
-            signal = stage3_lpf.processSample(signal);
+            // No frequency parameters found, using stable implementation
+            // RC filter using LiveSPICE components\n            stage0_resistor.process(signal);\n            stage0_capacitor.process(signal, currentSampleRate);\n            signal = (float)stage0_capacitor.getVoltage();\n\n            // Stage 1: Transistor Gain Stage
+            // [BETA] Low confidence pattern match, using stable code
+            // (Gain processed at block level after sample loop)\n\n            // Nonlinear component processing
+            signal = M1_amp.processSample(signal);
 
-            channelData[sample] = signal;
+            // Stage 2: Output Buffer
+            // [BETA] Low confidence pattern match, using stable code
+            // (Gain processed at block level after sample loop)\n\n            channelData[sample] = signal;
         }
     }
 
@@ -182,6 +138,8 @@ void CircuitProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
     juce::dsp::AudioBlock<float> block (buffer);
     juce::dsp::ProcessContextReplacing<float> context (block);
 
+    stage1_gain.process(context);
+    stage2_gain.process(context);
 }
 
 void CircuitProcessor::releaseResources()

@@ -12,6 +12,15 @@
 #include <juce_dsp/juce_dsp.h>
 #include <cmath>
 
+// Nonlinear component models
+#include "../../DiodeModels.h"
+#include "../../TransistorModels.h"
+#include "../../ComponentCharacteristicsDatabase.h"
+
+// LiveSPICE Component Library
+#include "../../third_party/livespice-components/ComponentModels.h"
+#include "../../third_party/livespice-components/DSPImplementations.h"
+
 class CircuitProcessor : public juce::AudioProcessor
 {
 public:
@@ -49,13 +58,10 @@ private:
         juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
         // Bypass Switch (Potentiometer)
-        layout.add(std::make_unique<juce::AudioParameterFloat>(
+        layout.add(std::make_unique<juce::AudioParameterBool>(
             juce::ParameterID{"bypass", 1},
             "Bypass",
-            juce::NormalisableRange<float>(
-                0f,
-                1f),
-            0f));
+            false));
 
         return layout;
     }
@@ -66,13 +72,24 @@ private:
 
     // Stage 0: Input Buffer
     // DSP Mapping: Capacitor: 250.000000pF
-    LiveSpiceDSP::ResistorProcessor stage0_resistor;
-    LiveSpiceDSP::CapacitorProcessor stage0_capacitor;
+    // [BETA] Optimized IIR filter for RC pattern
+    juce::dsp::IIR::Filter<float> stage0_hpf;
 
-    // Stage 1: RC Low-Pass Filter
+    // Stage 1: Transistor Gain Stage
+    // DSP Mapping: BJT: Circuit.BipolarJunctionTransistor, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null (Ebers-Moll model)
+    // [BETA] Optimized IIR filter for RC pattern
+
+    // Stage 2: RC Low-Pass Filter
     // DSP Mapping: Resistor: 100.000000kΩ
-    LiveSpiceDSP::ResistorProcessor stage1_resistor;
-    LiveSpiceDSP::CapacitorProcessor stage1_capacitor;
+    // [BETA] Optimized IIR filter for RC pattern
+    juce::dsp::IIR::Filter<float> stage2_lpf;
+
+    // ========================================================================
+    // Nonlinear Component Models
+    // ========================================================================
+
+    // BJT amplifiers
+    Nonlinear::BJTModelEbersMoll Q1_amp;
 
     // ========================================================================
     // APVTS - AudioProcessorValueTreeState for parameter management

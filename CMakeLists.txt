@@ -13,6 +13,7 @@ add_executable(livespice-translator
     CircuitDiagnostics.cpp
     LiveSpiceConnectionMapper.cpp
     JuceDSPGenerator.cpp
+    TopologyPatterns.cpp
 )
 
 # Compiler flags

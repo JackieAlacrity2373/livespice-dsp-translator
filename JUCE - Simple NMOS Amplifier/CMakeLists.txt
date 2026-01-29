@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(Boss_Super_Overdrive_SD_1 VERSION 1.0.0 LANGUAGES CXX)
+project(Simple_NMOS_Amplifier VERSION 1.0.0 LANGUAGES CXX)
 
 # JUCE library
 set(JUCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/JUCE")
@@ -8,8 +8,8 @@ set(JUCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/JUCE")
 add_subdirectory("${JUCE_PATH}" juce)
 
 # Create plugin target
-juce_add_plugin(Boss_Super_Overdrive_SD_1
-    PRODUCT_NAME "Boss Super Overdrive SD-1"
+juce_add_plugin(Simple_NMOS_Amplifier
+    PRODUCT_NAME "Simple NMOS Amplifier"
     COMPANY_NAME "LiveSpice DSP"
     VERSION 1.0.0
     DESCRIPTION "Auto-generated from LiveSpice circuit schematic"
@@ -23,12 +23,12 @@ juce_add_plugin(Boss_Super_Overdrive_SD_1
     COPY_PLUGIN_AFTER_BUILD TRUE)
 
 # Add source files
-target_sources(Boss_Super_Overdrive_SD_1 PRIVATE
+target_sources(Simple_NMOS_Amplifier PRIVATE
     CircuitProcessor.h
     CircuitProcessor.cpp)
 
 # Link JUCE
-target_link_libraries(Boss_Super_Overdrive_SD_1 PRIVATE
+target_link_libraries(Simple_NMOS_Amplifier PRIVATE
     juce::juce_core
     juce::juce_audio_basics
     juce::juce_audio_processors
@@ -36,6 +36,6 @@ target_link_libraries(Boss_Super_Overdrive_SD_1 PRIVATE
     juce::juce_gui_basics)
 
 # Set C++ standard
-set_target_properties(Boss_Super_Overdrive_SD_1 PROPERTIES
+set_target_properties(Simple_NMOS_Amplifier PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON)

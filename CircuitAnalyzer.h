@@ -2,6 +2,8 @@
 
 #include "LiveSpiceParser.h"
 #include "ComponentDSPMapper.h"
+#include "ComponentCharacteristicsDatabase.h"
+#include "TopologyPatterns.h"
 #include <map>
 #include <set>
 #include <memory>
@@ -29,6 +31,10 @@ namespace LiveSpice {
         std::string name;
         std::vector<std::shared_ptr<Component>> components;
         std::map<std::string, double> dspParams; // Parameters for DSP implementation
+        std::vector<Nonlinear::ComponentDB::NonlinearComponentInfo> nonlinearComponents;
+        std::string patternName;
+        std::string patternStrategy;
+        double patternConfidence = 0.0;
         
         // LiveSPICE component DSP mapping
         ComponentDSPMapper::DSPProcessorType primaryProcessorType;
@@ -109,6 +115,8 @@ namespace LiveSpice {
         CircuitStage identifyInputStage();
         CircuitStage identifyOutputStage();
         CircuitStage identifyOpAmpStage();
+        CircuitStage identifyTransistorStage();
+        CircuitStage identifyToneControlStage();
         CircuitStage identifyFilterStage();
         CircuitStage identifyClippingStage();
         CircuitStage identifyToneControl();
@@ -123,6 +131,12 @@ namespace LiveSpice {
         
         // LiveSPICE DSP mapping
         void populateDSPMapping(CircuitStage& stage);
+
+        // Nonlinear component analysis
+        void populateNonlinearComponents(CircuitStage& stage);
+
+        // Topology pattern analysis
+        void populatePatternInfo(CircuitStage& stage);
     };
 
 } // namespace LiveSpice

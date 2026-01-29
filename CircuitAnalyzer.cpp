@@ -3,6 +3,8 @@
 #include <cmath>
 #include <sstream>
 #include <algorithm>
+#include <cctype>
+#include <iomanip>
 
 namespace LiveSpice {
 
@@ -62,6 +64,42 @@ namespace LiveSpice {
             }
         }
         return result;
+    }
+
+    static std::string trimString(const std::string& input) {
+        size_t start = 0;
+        while (start < input.size() && std::isspace(static_cast<unsigned char>(input[start]))) {
+            ++start;
+        }
+
+        size_t end = input.size();
+        while (end > start && std::isspace(static_cast<unsigned char>(input[end - 1]))) {
+            --end;
+        }
+
+        return input.substr(start, end - start);
+    }
+
+    static std::string toUpperString(std::string input) {
+        for (auto& ch : input) {
+            ch = static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
+        }
+        return input;
+    }
+
+    static std::string normalizePartNumber(const std::string& raw) {
+        return toUpperString(trimString(sanitizeUnicode(raw)));
+    }
+
+    static bool isLikelyPNP(const std::string& partNumber, const std::string& typeParam) {
+        std::string partUpper = toUpperString(partNumber);
+        std::string typeUpper = toUpperString(typeParam);
+
+        if (typeUpper == "PNP") return true;
+        if (partUpper.find("PNP") != std::string::npos) return true;
+        if (partUpper == "2N3906") return true;
+
+        return false;
     }
 
     // ============================================================================
@@ -140,8 +178,11 @@ namespace LiveSpice {
         auto outputComps = findComponentsByType(ComponentType::Output);
         auto opamps = findComponentsByType(ComponentType::OpAmp);
         auto diodes = findComponentsByType(ComponentType::Diode);
+        auto transistors = findComponentsByType(ComponentType::Transistor);
         auto resistors = findComponentsByType(ComponentType::Resistor);
         auto capacitors = findComponentsByType(ComponentType::Capacitor);
+        auto potentiometers = findComponentsByType(ComponentType::Potentiometer);
+        auto variableResistors = findComponentsByType(ComponentType::VariableResistor);
 
         // 1. Input stage (Input -> coupling capacitor -> resistor -> buffer)
         if (!inputComps.empty()) {
@@ -158,12 +199,22 @@ namespace LiveSpice {
             }
         }
 
-        // 3. Passive filter stages (RC networks)
+        // 2b. Transistor-based gain stages (BJT/FET)
+        if (!transistors.empty()) {
+            identifiedStages.push_back(identifyTransistorStage());
+        }
+
+        // 3. Tone control stages
+        if (!potentiometers.empty() || !variableResistors.empty()) {
+            identifiedStages.push_back(identifyToneControlStage());
+        }
+
+        // 4. Passive filter stages (RC networks)
         if (!resistors.empty() && !capacitors.empty()) {
             identifiedStages.push_back(identifyFilterStage());
         }
 
-        // 4. Output stage
+        // 5. Output stage
         if (!outputComps.empty()) {
             identifiedStages.push_back(identifyOutputStage());
         }
@@ -202,6 +253,11 @@ namespace LiveSpice {
         }
 
         populateDSPMapping(stage);
+        populateNonlinearComponents(stage);
+        populatePatternInfo(stage);
+        stage.patternName = "Tone Stack";
+        stage.patternStrategy = "tone_stack";
+        stage.patternConfidence = 0.9;
         return stage;
     }
 
@@ -216,6 +272,11 @@ namespace LiveSpice {
         }
 
         populateDSPMapping(stage);
+        populateNonlinearComponents(stage);
+        populatePatternInfo(stage);
+        stage.patternName = "Tone Stack";
+        stage.patternStrategy = "tone_stack";
+        stage.patternConfidence = 0.9;
         return stage;
     }
 
@@ -242,6 +303,34 @@ namespace LiveSpice {
         }
 
         populateDSPMapping(stage);
+        populateNonlinearComponents(stage);
+        populatePatternInfo(stage);
+        return stage;
+    }
+
+    CircuitStage CircuitAnalyzer::identifyTransistorStage() {
+        CircuitStage stage;
+        stage.type = StageType::GainStage;
+        stage.name = "Transistor Gain Stage";
+
+        auto transistors = findComponentsByType(ComponentType::Transistor);
+        for (const auto& transistor : transistors) {
+            stage.components.push_back(transistor);
+        }
+
+        // Add nearby resistors/capacitors as context if present
+        auto resistors = findComponentsByType(ComponentType::Resistor);
+        auto capacitors = findComponentsByType(ComponentType::Capacitor);
+        if (!resistors.empty()) {
+            stage.components.push_back(resistors[0]);
+        }
+        if (!capacitors.empty()) {
+            stage.components.push_back(capacitors[0]);
+        }
+
+        populateDSPMapping(stage);
+        populateNonlinearComponents(stage);
+        populatePatternInfo(stage);
         return stage;
     }
 
@@ -265,6 +354,33 @@ namespace LiveSpice {
         }
 
         populateDSPMapping(stage);
+        populateNonlinearComponents(stage);
+        populatePatternInfo(stage);
+        return stage;
+    }
+
+    CircuitStage CircuitAnalyzer::identifyToneControlStage() {
+        CircuitStage stage;
+        stage.type = StageType::ToneControl;
+        stage.name = "Tone Control";
+
+        auto potentiometers = findComponentsByType(ComponentType::Potentiometer);
+        auto resistors = findComponentsByType(ComponentType::Resistor);
+        auto capacitors = findComponentsByType(ComponentType::Capacitor);
+
+        if (!potentiometers.empty()) {
+            stage.components.push_back(potentiometers[0]);
+        }
+        if (!resistors.empty()) {
+            stage.components.push_back(resistors[0]);
+        }
+        if (!capacitors.empty()) {
+            stage.components.push_back(capacitors[0]);
+        }
+
+        populateDSPMapping(stage);
+        populateNonlinearComponents(stage);
+        populatePatternInfo(stage);
         return stage;
     }
 
@@ -290,6 +406,8 @@ namespace LiveSpice {
         }
 
         populateDSPMapping(stage);
+        populateNonlinearComponents(stage);
+        populatePatternInfo(stage);
         return stage;
     }
 
@@ -299,6 +417,8 @@ namespace LiveSpice {
         stage.name = "Tone Control";
 
         populateDSPMapping(stage);
+        populateNonlinearComponents(stage);
+        populatePatternInfo(stage);
         return stage;
     }
 
@@ -466,6 +586,21 @@ namespace LiveSpice {
         for (const auto& stage : identifiedStages) {
             ss << "\n  Stage: " << stage.name << "\n";
             ss << "  Components: " << stage.components.size() << "\n";
+            if (!stage.nonlinearComponents.empty()) {
+                ss << "  Nonlinear Components: " << stage.nonlinearComponents.size() << "\n";
+                for (const auto& nonlinear : stage.nonlinearComponents) {
+                    ss << "    - " << nonlinear.name << " (" << nonlinear.typeString() << ")";
+                    if (!nonlinear.partNumber.empty()) {
+                        ss << " [" << nonlinear.partNumber << "]";
+                    }
+                    ss << "\n";
+                }
+            }
+            if (!stage.patternName.empty()) {
+                ss << "  Pattern Match: " << stage.patternName;
+                ss << " (" << stage.patternStrategy << ", confidence "
+                   << std::fixed << std::setprecision(2) << stage.patternConfidence << ")\n";
+            }
             
             // Add DSP mapping information
             ss << "  LiveSPICE DSP Mapping: " << stage.dspDescription << "\n";
@@ -624,6 +759,158 @@ namespace LiveSpice {
         } else {
             stage.primaryProcessorType = ComponentDSPMapper::DSPProcessorType::Unknown;
             stage.dspDescription = "No DSP mapping available";
+        }
+    }
+
+    void CircuitAnalyzer::populatePatternInfo(CircuitStage& stage) {
+        TopologyPatternMatcher matcher;
+        auto matches = matcher.matchComponents(stage.components);
+
+        stage.patternName = "Unknown";
+        stage.patternStrategy = "generic";
+        stage.patternConfidence = 0.0;
+
+        // Force tone stack for ToneControl stages
+        if (stage.type == StageType::ToneControl) {
+            stage.patternName = "Tone Stack";
+            stage.patternStrategy = "tone_stack";
+            stage.patternConfidence = 0.9;
+        }
+
+        if (stage.patternStrategy == "generic" && !matches.empty()) {
+            auto bestTone = matches.end();
+            auto bestNonTone = matches.end();
+
+            for (auto it = matches.begin(); it != matches.end(); ++it) {
+                const bool isTone = it->pattern.dspStrategy == "tone_stack";
+                if (isTone) {
+                    if (bestTone == matches.end() || it->confidence > bestTone->confidence) {
+                        bestTone = it;
+                    }
+                } else {
+                    if (bestNonTone == matches.end() || it->confidence > bestNonTone->confidence) {
+                        bestNonTone = it;
+                    }
+                }
+            }
+
+            PatternMatch bestMatch;
+            bool hasBest = false;
+
+            if (stage.type == StageType::ToneControl && bestTone != matches.end()) {
+                bestMatch = *bestTone;
+                hasBest = true;
+            } else if (bestNonTone != matches.end()) {
+                bestMatch = *bestNonTone;
+                hasBest = true;
+            } else if (bestTone != matches.end()) {
+                bestMatch = *bestTone;
+                hasBest = true;
+            }
+
+            if (hasBest) {
+                stage.patternName = bestMatch.pattern.name;
+                stage.patternStrategy = bestMatch.pattern.dspStrategy;
+                stage.patternConfidence = bestMatch.confidence;
+            }
+        }
+
+        if ((stage.type == StageType::OpAmpClipping || stage.type == StageType::DiodeClipper)
+            && !stage.nonlinearComponents.empty()) {
+            stage.patternName = "Op-Amp Diode Clipping";
+            stage.patternStrategy = "nonlinear_clipper";
+            stage.patternConfidence = 0.95;
+        } else if (stage.type == StageType::LowPassFilter) {
+            stage.patternName = "Passive RC Low-Pass";
+            stage.patternStrategy = "cascaded_biquad";
+            stage.patternConfidence = 0.9;
+        } else if (stage.type == StageType::InputBuffer) {
+            stage.patternName = "Passive RC High-Pass";
+            stage.patternStrategy = "cascaded_biquad";
+            stage.patternConfidence = 0.85;
+        }
+    }
+
+    void CircuitAnalyzer::populateNonlinearComponents(CircuitStage& stage) {
+        stage.nonlinearComponents.clear();
+
+        for (const auto& comp : stage.components) {
+            if (!comp) continue;
+
+            ComponentType type = comp->getType();
+            bool isTransistorFallback = false;
+            if (type != ComponentType::Diode && type != ComponentType::Transistor) {
+                const std::string compName = comp->getName();
+                if (!compName.empty() && (compName[0] == 'Q' || compName[0] == 'M')) {
+                    isTransistorFallback = true;
+                } else {
+                    continue;
+                }
+            }
+
+            std::string partNumber = normalizePartNumber(comp->getParamValue("PartNumber"));
+            if (partNumber.empty()) {
+                partNumber = normalizePartNumber(comp->getParamValue("Model"));
+            }
+            if (partNumber.empty()) {
+                partNumber = normalizePartNumber(comp->getParamValue("Value"));
+            }
+
+            const std::string componentName = comp->getName();
+
+            if (type == ComponentType::Diode) {
+                if (partNumber.empty()) {
+                    partNumber = "1N4148";
+                }
+                stage.nonlinearComponents.push_back(
+                    Nonlinear::ComponentDB::NonlinearComponentInfo::fromDiode(partNumber, componentName)
+                );
+                continue;
+            }
+
+            // Treat fallback as transistor
+            if (isTransistorFallback && type != ComponentType::Transistor) {
+                type = ComponentType::Transistor;
+            }
+
+            const std::string typeParam = comp->getParamValue("Type");
+            const bool isPNP = isLikelyPNP(partNumber, typeParam);
+
+            auto bjtMatch = Nonlinear::ComponentDB::getBJTDB().lookup(partNumber);
+            auto fetMatch = Nonlinear::ComponentDB::getFETDB().lookup(partNumber);
+
+            if (bjtMatch.has_value()) {
+                stage.nonlinearComponents.push_back(
+                    Nonlinear::ComponentDB::NonlinearComponentInfo::fromBJT(partNumber, componentName, isPNP)
+                );
+                continue;
+            }
+
+            if (fetMatch.has_value()) {
+                stage.nonlinearComponents.push_back(
+                    Nonlinear::ComponentDB::NonlinearComponentInfo::fromFET(partNumber, componentName, isPNP)
+                );
+                continue;
+            }
+
+            if (!componentName.empty() && componentName[0] == 'M') {
+                stage.nonlinearComponents.push_back(
+                    Nonlinear::ComponentDB::NonlinearComponentInfo::fromFET(
+                        partNumber.empty() ? "2N7000" : partNumber,
+                        componentName,
+                        isPNP
+                    )
+                );
+                continue;
+            }
+
+            stage.nonlinearComponents.push_back(
+                Nonlinear::ComponentDB::NonlinearComponentInfo::fromBJT(
+                    partNumber.empty() ? "2N3904" : partNumber,
+                    componentName,
+                    isPNP
+                )
+            );
         }
     }
 

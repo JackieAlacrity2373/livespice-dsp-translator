@@ -7,6 +7,8 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <algorithm>
+#include <cctype>
 
 namespace LiveSpice {
 
@@ -368,7 +370,7 @@ namespace LiveSpice {
                 }
                 case DSPProcessorType::JFET: {
                     auto params = extractJFETParams(comp);
-                    return "JFET: " + params.partNumber + " (Quadratic model)";
+                    return "FET: " + params.partNumber + " (Quadratic model)";
                 }
                 case DSPProcessorType::OpAmp: {
                     auto params = extractOpAmpParams(comp);
@@ -389,18 +391,37 @@ namespace LiveSpice {
             std::string partNum = comp->getParamValue("PartNumber");
             if (partNum.empty()) partNum = comp->getParamValue("Model");
             if (partNum.empty()) partNum = comp->getParamValue("Type");
+            std::string partUpper = partNum;
+            std::transform(partUpper.begin(), partUpper.end(), partUpper.begin(), [](unsigned char c) {
+                return static_cast<char>(std::toupper(c));
+            });
+            std::string nameUpper = comp->getName();
+            std::transform(nameUpper.begin(), nameUpper.end(), nameUpper.begin(), [](unsigned char c) {
+                return static_cast<char>(std::toupper(c));
+            });
+
+            // If schematic uses MOSFET-style designators, prefer FET
+            if (!nameUpper.empty() && nameUpper[0] == 'M') {
+                return DSPProcessorType::JFET;
+            }
             
             // Check for tube/triode indicators
-            if (partNum.find("12A") != std::string::npos || 
-                partNum.find("EL") != std::string::npos ||
-                partNum.find("6L6") != std::string::npos ||
-                partNum.find("Triode") != std::string::npos) {
+            if (partUpper.find("12A") != std::string::npos || 
+                partUpper.find("EL") != std::string::npos ||
+                partUpper.find("6L6") != std::string::npos ||
+                partUpper.find("TRIODE") != std::string::npos) {
                 return DSPProcessorType::Triode;
             }
             
-            // Check for JFET indicators
-            if (partNum.find("2N5") != std::string::npos ||
-                partNum.find("JFET") != std::string::npos) {
+            // Check for FET indicators (JFET/MOSFET)
+            if (partUpper.find("JFET") != std::string::npos ||
+                partUpper.find("FET") != std::string::npos ||
+                partUpper.find("MOSFET") != std::string::npos ||
+                partUpper.find("NMOS") != std::string::npos ||
+                partUpper.find("PMOS") != std::string::npos ||
+                partUpper.find("2N7000") != std::string::npos ||
+                partUpper.find("BS170") != std::string::npos ||
+                partUpper.find("2N5") != std::string::npos) {
                 return DSPProcessorType::JFET;
             }
             

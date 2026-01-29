@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(MXR_Distortion__ VERSION 1.0.0 LANGUAGES CXX)
 
 # JUCE library
-set(JUCE_PATH "H:/Live Spice DSP translation layer/third_party/JUCE")
+set(JUCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/JUCE")
 
 # Add JUCE as subdirectory
 add_subdirectory("${JUCE_PATH}" juce)

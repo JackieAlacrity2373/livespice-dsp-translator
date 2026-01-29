@@ -10,6 +10,18 @@
 
 using namespace LiveSpice;
 
+// ============================================================================
+// BETA MODE CONFIGURATION
+// ============================================================================
+// Beta mode enables pattern-specific DSP code generation and advanced features.
+// Use --beta to enable, --stable to disable (default: stable)
+struct GenerationConfig {
+    bool useBetaFeatures = false;  // Pattern-specific code generation
+    bool verbose = false;
+};
+
+GenerationConfig g_config;
+
 // Helper function to extract circuit name from filename
 std::string getCircuitName(const std::string& filepath) {
     // Get filename without path
@@ -39,10 +51,40 @@ std::string createValidDirName(const std::string& name) {
 
 int main(int argc, char* argv[]) {
     try {
+        // Check for help first
+        for (int i = 1; i < argc; ++i) {
+            std::string arg = argv[i];
+            if (arg == "--help" || arg == "-h") {
+                std::cout << "LiveSPICE to DSP Translator\n";
+                std::cout << "Usage: " << argv[0] << " [options] <schematic.schx>\n";
+                std::cout << "\nOptions:\n";
+                std::cout << "  --beta      Enable beta features (pattern-specific DSP generation)\n";
+                std::cout << "  --stable    Use stable/legacy code generation (default)\n";
+                std::cout << "  --verbose   Verbose output\n";
+                std::cout << "  --help      Show this help\n";
+                std::cout << "\nMode Details:\n";
+                std::cout << "  STABLE (default): Uses proven generic DSP mapping\n";
+                std::cout << "  BETA: Uses pattern recognition for optimized DSP code\n";
+                return 0;
+            }
+        }
+        
         std::string inputFile = "example pedals/MXR Distortion +.schx";
 
-        if (argc > 1) {
-            inputFile = argv[1];
+        // Parse command line arguments
+        for (int i = 1; i < argc; ++i) {
+            std::string arg = argv[i];
+            if (arg == "--beta") {
+                g_config.useBetaFeatures = true;
+                std::cout << "[BETA MODE ENABLED] Pattern-specific code generation active\n" << std::endl;
+            } else if (arg == "--stable") {
+                g_config.useBetaFeatures = false;
+                std::cout << "[STABLE MODE] Using legacy code generation\n" << std::endl;
+            } else if (arg == "--verbose" || arg == "-v") {
+                g_config.verbose = true;
+            } else if (arg[0] != '-') {
+                inputFile = arg;
+            }
         }
 
         std::cout << "Parsing LiveSpice file: " << inputFile << std::endl;
@@ -69,6 +111,7 @@ int main(int argc, char* argv[]) {
                 case ComponentType::Inductor: std::cout << "Inductor"; break;
                 case ComponentType::Potentiometer: std::cout << "Potentiometer"; break;
                 case ComponentType::Diode: std::cout << "Diode"; break;
+                case ComponentType::Transistor: std::cout << "Transistor (BJT/FET)"; break;
                 case ComponentType::OpAmp: std::cout << "Op-Amp"; break;
                 case ComponentType::Speaker: std::cout << "Speaker"; break;
                 case ComponentType::Input: std::cout << "Input"; break;
@@ -228,6 +271,13 @@ int main(int argc, char* argv[]) {
         }
         
         JuceDSPGenerator juceGen;
+        juceGen.setBetaMode(g_config.useBetaFeatures);
+        
+        if (g_config.useBetaFeatures) {
+            std::cout << "[BETA] Using pattern-specific DSP code generation" << std::endl;
+        } else {
+            std::cout << "[STABLE] Using legacy DSP code generation" << std::endl;
+        }
         
         // Write plugin files to the output directory (with parameter support)
         juceGen.writePluginFiles(outputDirName, circuitName, stages, schematic.getNetlist());

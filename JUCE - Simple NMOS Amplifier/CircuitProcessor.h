@@ -57,33 +57,6 @@ private:
     {
         juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
-        // Drive (Variable Resistor)
-        layout.add(std::make_unique<juce::AudioParameterFloat>(
-            juce::ParameterID{"drive", 1},
-            "Drive",
-            juce::NormalisableRange<float>(
-                0.0f,
-                1.0f),
-            0.5f));
-
-        // Level (Potentiometer)
-        layout.add(std::make_unique<juce::AudioParameterFloat>(
-            juce::ParameterID{"level", 1},
-            "Level",
-            juce::NormalisableRange<float>(
-                0.0f,
-                1.0f),
-            0.5f));
-
-        // Tone (Potentiometer)
-        layout.add(std::make_unique<juce::AudioParameterFloat>(
-            juce::ParameterID{"tone", 1},
-            "Tone",
-            juce::NormalisableRange<float>(
-                0.0f,
-                1.0f),
-            1.0f));
-
         // Bypass Switch (Potentiometer)
         layout.add(std::make_unique<juce::AudioParameterBool>(
             juce::ParameterID{"bypass", 1},
@@ -98,29 +71,24 @@ private:
     // ========================================================================
 
     // Stage 0: Input Buffer
-    // DSP Mapping: Capacitor: 18.000000nF
-    LiveSpiceDSP::ResistorProcessor stage0_resistor;
-    LiveSpiceDSP::CapacitorProcessor stage0_capacitor;
+    // DSP Mapping: No DSP mapping available
+    // [BETA] Optimized IIR filter for RC pattern
+    juce::dsp::IIR::Filter<float> stage0_hpf;
 
-    // Stage 1: Op-Amp Clipping Stage
-    // DSP Mapping: Op-Amp: Circuit.IdealOpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null (Behavioral model)
-    LiveSpiceDSP::DiodeProcessor stage1_diode1;
-    LiveSpiceDSP::DiodeProcessor stage1_diode2;
-    LiveSpiceDSP::OpAmpProcessor stage1_opamp;
+    // Stage 1: Transistor Gain Stage
+    // DSP Mapping: FET: 2N7000 (Quadratic model)
+    juce::dsp::Gain<float> stage1_gain;
 
-    // Stage 2: RC Low-Pass Filter
-    // DSP Mapping: Resistor: 100.000000kΩ
-    LiveSpiceDSP::ResistorProcessor stage2_resistor;
-    LiveSpiceDSP::CapacitorProcessor stage2_capacitor;
+    // Stage 2: Output Buffer
+    // DSP Mapping: No DSP mapping available
+    juce::dsp::Gain<float> stage2_gain;
 
     // ========================================================================
     // Nonlinear Component Models
     // ========================================================================
 
-    // Diode clippers
-    Nonlinear::DiodeClippingStage D1_clipper;
-    Nonlinear::DiodeClippingStage D2_clipper;
-    Nonlinear::DiodeClippingStage D3_clipper;
+    // FET amplifiers
+    Nonlinear::FETModelQuadratic M1_amp;
 
     // ========================================================================
     // APVTS - AudioProcessorValueTreeState for parameter management
@@ -128,9 +96,6 @@ private:
     juce::AudioProcessorValueTreeState apvts;
 
     // Parameter pointers for fast access
-    std::atomic<float>* driveParam = nullptr;
-    std::atomic<float>* levelParam = nullptr;
-    std::atomic<float>* toneParam = nullptr;
     std::atomic<float>* bypassParam = nullptr;
 
     // Sample rate for DSP processing

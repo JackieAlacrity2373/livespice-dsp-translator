@@ -12,6 +12,15 @@
 #include <juce_dsp/juce_dsp.h>
 #include <cmath>
 
+// Nonlinear component models
+#include "../../DiodeModels.h"
+#include "../../TransistorModels.h"
+#include "../../ComponentCharacteristicsDatabase.h"
+
+// LiveSPICE Component Library
+#include "../../third_party/livespice-components/ComponentModels.h"
+#include "../../third_party/livespice-components/DSPImplementations.h"
+
 class CircuitProcessor : public juce::AudioProcessor
 {
 public:
@@ -53,8 +62,8 @@ private:
             juce::ParameterID{"drive", 1},
             "Drive",
             juce::NormalisableRange<float>(
-                0f,
-                1f),
+                0.0f,
+                1.0f),
             0.5f));
 
         // Level (Potentiometer)
@@ -62,18 +71,15 @@ private:
             juce::ParameterID{"level", 1},
             "Level",
             juce::NormalisableRange<float>(
-                0f,
-                1f),
-            1f));
+                0.0f,
+                1.0f),
+            1.0f));
 
         // Bypass Switch (Potentiometer)
-        layout.add(std::make_unique<juce::AudioParameterFloat>(
+        layout.add(std::make_unique<juce::AudioParameterBool>(
             juce::ParameterID{"bypass", 1},
             "Bypass",
-            juce::NormalisableRange<float>(
-                0f,
-                1f),
-            0f));
+            false));
 
         return layout;
     }
@@ -97,6 +103,13 @@ private:
     // DSP Mapping: Resistor: 10.000000kΩ
     LiveSpiceDSP::ResistorProcessor stage2_resistor;
     LiveSpiceDSP::CapacitorProcessor stage2_capacitor;
+
+    // ========================================================================
+    // Nonlinear Component Models
+    // ========================================================================
+
+    Nonlinear::DiodeClippingStage D1_clipper;
+    Nonlinear::DiodeClippingStage D2_clipper;
 
     // ========================================================================
     // APVTS - AudioProcessorValueTreeState for parameter management

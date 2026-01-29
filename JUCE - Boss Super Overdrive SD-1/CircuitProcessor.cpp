@@ -11,7 +11,7 @@ CircuitProcessor::CircuitProcessor()
     : AudioProcessor (BusesProperties()
                      .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
                      .withOutput ("Output", juce::AudioChannelSet::stereo(), true))
-, apvts(*this, nullptr, "Parameters", createParameterLayout())
+, apvts(*this, nullptr, "Parameters", createParameterLayout()), D1_clipper(Nonlinear::ComponentDB::getDiodeDB().getOrDefault("1N916"), Nonlinear::DiodeClippingStage::TopologyType::BackToBackDiodes, 10000.0f), D2_clipper(Nonlinear::ComponentDB::getDiodeDB().getOrDefault("1N916"), Nonlinear::DiodeClippingStage::TopologyType::BackToBackDiodes, 10000.0f), D3_clipper(Nonlinear::ComponentDB::getDiodeDB().getOrDefault("1N916"), Nonlinear::DiodeClippingStage::TopologyType::BackToBackDiodes, 10000.0f)
 {
     // Initialize parameter pointers
     driveParam = apvts.getRawParameterValue("drive");
@@ -131,26 +131,14 @@ void CircuitProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
             float signal = channelData[sample];
             
             // Stage 0: Input Buffer
-            // RC filter using LiveSPICE components
-            stage0_resistor.process(signal);
-            stage0_capacitor.process(signal, currentSampleRate);
-            signal = (float)stage0_capacitor.getVoltage();
-
-            // Stage 1: Op-Amp Clipping Stage
-            // Diode clipper with Shockley equation
-            stage1_diode1.process(signal);
-            stage1_diode2.process(-signal);
-            double clipped = stage1_diode1.getCurrent() - stage1_diode2.getCurrent();
-            stage1_opamp.process(0.0, clipped);
-            signal = (float)stage1_opamp.getOutputVoltage();
+            // RC filter using LiveSPICE components\n            stage0_resistor.process(signal);\n            stage0_capacitor.process(signal, currentSampleRate);\n            signal = (float)stage0_capacitor.getVoltage();\n\n            // Stage 1: Op-Amp Clipping Stage
+            // Diode clipper with Shockley equation\n            stage1_diode1.process(signal);\n            stage1_diode2.process(-signal);\n            double clipped = stage1_diode1.getCurrent() - stage1_diode2.getCurrent();\n            stage1_opamp.process(0.0, clipped);\n            signal = (float)stage1_opamp.getOutputVoltage();\n\n            // Nonlinear component processing
+            signal = D1_clipper.processSample(signal);
+            signal = D2_clipper.processSample(signal);
+            signal = D3_clipper.processSample(signal);
 
             // Stage 2: RC Low-Pass Filter
-            // RC filter using LiveSPICE components
-            stage2_resistor.process(signal);
-            stage2_capacitor.process(signal, currentSampleRate);
-            signal = (float)stage2_capacitor.getVoltage();
-
-            channelData[sample] = signal;
+            // RC filter using LiveSPICE components\n            stage2_resistor.process(signal);\n            stage2_capacitor.process(signal, currentSampleRate);\n            signal = (float)stage2_capacitor.getVoltage();\n\n            channelData[sample] = signal;
         }
     }
 

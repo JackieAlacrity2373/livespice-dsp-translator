@@ -11,7 +11,7 @@ CircuitProcessor::CircuitProcessor()
     : AudioProcessor (BusesProperties()
                      .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
                      .withOutput ("Output", juce::AudioChannelSet::stereo(), true))
-, apvts(*this, nullptr, "Parameters", createParameterLayout())
+, apvts(*this, nullptr, "Parameters", createParameterLayout()), Q1_amp(Nonlinear::ComponentDB::getBJTDB().getOrDefault("2N3904"))
 {
     // Initialize parameter pointers
     bypassParam = apvts.getRawParameterValue("bypass");
@@ -82,14 +82,17 @@ void CircuitProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     // ========================================================================
 
     // Stage 0: Input Buffer
-    // RC High-Pass Filter: f = 6366.2 Hz
-    stage0_resistor.prepare(100000);
-    stage0_capacitor.prepare(2.5e-10, 0.1); // 2.5e-10 F with 0.1Ω ESR
+    // [BETA] Optimized high-pass biquad
+    *stage0_hpf.state = *juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, 6366.2f);
+    stage0_hpf.prepare(spec);
 
-    // Stage 1: RC Low-Pass Filter
-    // RC Low-Pass Filter: fc = 6366.2 Hz
-    stage1_resistor.prepare(10000);
-    stage1_capacitor.prepare(1e-08, 0.1);
+    // Stage 1: Transistor Gain Stage
+    // [BETA] No frequency params, skipping filter init
+
+    // Stage 2: RC Low-Pass Filter
+    // [BETA] Optimized low-pass biquad
+    *stage2_lpf.state = *juce::dsp::IIR::Coefficients<float>::makeLowPass(sampleRate, 6366.2f);
+    stage2_lpf.prepare(spec);
 
 }
 
@@ -119,16 +122,23 @@ void CircuitProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
             float signal = channelData[sample];
             
             // Stage 0: Input Buffer
-            // RC filter using LiveSPICE components
-            stage0_resistor.process(signal);
-            stage0_capacitor.process(signal, currentSampleRate);
-            signal = (float)stage0_capacitor.getVoltage();
+            // [BETA] Pattern: Passive RC High-Pass (confidence: 0.85)
+            // [BETA] Optimized biquad for RC filter pattern
+            // Input coupling high-pass: fc = 6366.2 Hz
+            signal = stage0_hpf.processSample(signal);
 
-            // Stage 1: RC Low-Pass Filter
-            // RC filter using LiveSPICE components
-            stage1_resistor.process(signal);
-            stage1_capacitor.process(signal, currentSampleRate);
-            signal = (float)stage1_capacitor.getVoltage();
+            // Stage 1: Transistor Gain Stage
+            // [BETA] Pattern: Passive RC Low-Pass (confidence: 1)
+            // [BETA] Optimized biquad for RC filter pattern
+            // No frequency parameters found, using stable implementation
+            // (Gain processed at block level after sample loop)\n\n            // Nonlinear component processing
+            signal = Q1_amp.processSample(signal);
+
+            // Stage 2: RC Low-Pass Filter
+            // [BETA] Pattern: Passive RC Low-Pass (confidence: 0.9)
+            // [BETA] Optimized biquad for RC filter pattern
+            // Low-pass biquad: fc = 6366.2 Hz
+            signal = stage2_lpf.processSample(signal);
 
             channelData[sample] = signal;
         }
@@ -138,6 +148,7 @@ void CircuitProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
     juce::dsp::AudioBlock<float> block (buffer);
     juce::dsp::ProcessContextReplacing<float> context (block);
 
+    stage1_gain.process(context);
 }
 
 void CircuitProcessor::releaseResources()

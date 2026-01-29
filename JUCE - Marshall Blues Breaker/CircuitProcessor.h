@@ -12,6 +12,15 @@
 #include <juce_dsp/juce_dsp.h>
 #include <cmath>
 
+// Nonlinear component models
+#include "../../DiodeModels.h"
+#include "../../TransistorModels.h"
+#include "../../ComponentCharacteristicsDatabase.h"
+
+// LiveSPICE Component Library
+#include "../../third_party/livespice-components/ComponentModels.h"
+#include "../../third_party/livespice-components/DSPImplementations.h"
+
 class CircuitProcessor : public juce::AudioProcessor
 {
 public:
@@ -90,22 +99,43 @@ private:
 
     // Stage 0: Input Buffer
     // DSP Mapping: Capacitor: 10.000000nF
-    // TODO: DSP implementation pending
-    // LiveSpiceDSP::ResistorProcessor stage0_resistor;
-    // LiveSpiceDSP::CapacitorProcessor stage0_capacitor;
+    // [BETA] Tone stack filters (low/mid/high)
+    juce::dsp::IIR::Filter<float> stage0_toneLow;
+    juce::dsp::IIR::Filter<float> stage0_toneMid;
+    juce::dsp::IIR::Filter<float> stage0_toneHigh;
 
     // Stage 1: Op-Amp Clipping Stage
     // DSP Mapping: Op-Amp: Circuit.IdealOpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null (Behavioral model)
-    // TODO: DSP implementation pending
-    // LiveSpiceDSP::DiodeProcessor stage1_diode1;
-    // LiveSpiceDSP::DiodeProcessor stage1_diode2;
-    // LiveSpiceDSP::OpAmpProcessor stage1_opamp;
+    LiveSpiceDSP::DiodeProcessor stage1_diode1;
+    LiveSpiceDSP::DiodeProcessor stage1_diode2;
+    LiveSpiceDSP::OpAmpProcessor stage1_opamp;
 
-    // Stage 2: RC Low-Pass Filter
+    // Stage 2: Tone Control
     // DSP Mapping: Resistor: 1.000000MΩ
-    // TODO: DSP implementation pending
-    // LiveSpiceDSP::ResistorProcessor stage2_resistor;
-    // LiveSpiceDSP::CapacitorProcessor stage2_capacitor;
+    // [BETA] Tone stack filters (low/mid/high)
+    juce::dsp::IIR::Filter<float> stage2_toneLow;
+    juce::dsp::IIR::Filter<float> stage2_toneMid;
+    juce::dsp::IIR::Filter<float> stage2_toneHigh;
+
+    // Stage 3: RC Low-Pass Filter
+    // DSP Mapping: Resistor: 1.000000MΩ
+    // [BETA] Optimized IIR filter for RC pattern
+    juce::dsp::IIR::Filter<float> stage3_lpf;
+
+    // [BETA] Tone stack filters (fallback)
+    juce::dsp::IIR::Filter<float> stage2_toneLow;
+    juce::dsp::IIR::Filter<float> stage2_toneMid;
+    juce::dsp::IIR::Filter<float> stage2_toneHigh;
+
+    // ========================================================================
+    // Nonlinear Component Models
+    // ========================================================================
+
+    // Diode clippers
+    Nonlinear::DiodeClippingStage D1_clipper;
+    Nonlinear::DiodeClippingStage D2_clipper;
+    Nonlinear::DiodeClippingStage D3_clipper;
+    Nonlinear::DiodeClippingStage D4_clipper;
 
     // ========================================================================
     // APVTS - AudioProcessorValueTreeState for parameter management

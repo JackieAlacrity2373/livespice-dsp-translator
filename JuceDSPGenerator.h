@@ -14,7 +14,11 @@ namespace LiveSpice {
     // ============================================================================
     class JuceDSPGenerator {
     public:
-        JuceDSPGenerator() {}
+        JuceDSPGenerator() : m_useBetaFeatures(false) {}
+        
+        // Enable/disable beta features (pattern-specific code generation)
+        void setBetaMode(bool enabled) { m_useBetaFeatures = enabled; }
+        bool isBetaMode() const { return m_useBetaFeatures; }
 
         // Generate complete JUCE plugin processor code
         std::string generateProcessorHeader();
@@ -50,9 +54,14 @@ namespace LiveSpice {
         // Phase 6: Parameter generation with APVTS
         std::string generateProcessorHeaderWithParams(const Netlist& netlist, const std::vector<CircuitStage>& stages);
         std::string generateProcessorImplWithParams(const Netlist& netlist, const std::vector<CircuitStage>& stages);
+        
+        // Beta: Pattern-specific code generation
+        std::string generatePatternSpecificCode(const CircuitStage& stage, size_t stageIndex) const;
+        std::string generateStableLegacyCode(const CircuitStage& stage, size_t stageIndex) const;
 
     private:
         ParameterGenerator paramGenerator;
+        bool m_useBetaFeatures;
     };
 
 } // namespace LiveSpice

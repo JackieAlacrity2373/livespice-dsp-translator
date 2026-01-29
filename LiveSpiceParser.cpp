@@ -91,6 +91,10 @@ namespace LiveSpice {
             return ComponentType::Potentiometer;
         } else if (typeStr.find("Diode") != std::string::npos) {
             return ComponentType::Diode;
+        } else if (typeStr.find("BipolarJunctionTransistor") != std::string::npos || 
+                   typeStr.find("BJT") != std::string::npos ||
+                   typeStr.find("Transistor") != std::string::npos) {
+            return ComponentType::Transistor;
         } else if (typeStr.find("Transformer") != std::string::npos) {
             return ComponentType::Transformer;
         } else if (typeStr.find("OpAmp") != std::string::npos || typeStr.find("IdealOpAmp") != std::string::npos) {
@@ -226,6 +230,13 @@ namespace LiveSpice {
                             std::string componentTypeStr = extractAttributeValue(componentLine, "_Type");
                             if (!componentTypeStr.empty()) {
                                 compType = getComponentType(componentTypeStr);
+                            }
+                            if (componentTypeStr.empty() || compType == ComponentType::Unknown) {
+                                // Fallback: Use Type attribute (often contains BipolarJunctionTransistor, etc.)
+                                std::string componentTypeFallback = extractAttributeValue(componentLine, "Type");
+                                if (!componentTypeFallback.empty()) {
+                                    compType = getComponentType(componentTypeFallback);
+                                }
                             }
 
                             // Create component
