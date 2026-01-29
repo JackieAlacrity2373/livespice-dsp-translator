@@ -11,6 +11,14 @@ A C++ framework for parsing LiveSpice guitar pedal schematics and translating th
 - Standalone plugins building and functional
 - MXR Distortion+ plugin: ~4.4 MB standalone executable
 
+## Condensed Documentation Map (Start Here)
+
+- **Project overview & quick start:** README.md (this file)
+- **System architecture:** SYSTEM_ARCHITECTURE.md
+- **Plugin build details:** JUCE_PLUGIN_BUILD_GUIDE.md
+- **A/B Tester module:** LiveSpice-AB-Tester/README.md
+- **Component analysis index:** README_DOCUMENTATION.md
+
 ## Quick Start (5 Minutes)
 
 ### 1. Generate a Plugin
@@ -32,6 +40,23 @@ cmake --build . --config Release
 Find the executable at:
 ```
 build\MXR_Distortion___artefacts\Release\Standalone\MXR Distortion +.exe
+```
+
+## Quick Reference (Condensed)
+
+### Build Translator
+```powershell
+g++ -std=c++17 -Wall -Wextra -O2 Livespice_to_DSP.cpp LiveSpiceParser.cpp CircuitAnalyzer.cpp CircuitVisualizer.cpp CircuitDiagnostics.cpp LiveSpiceConnectionMapper.cpp JuceDSPGenerator.cpp -o livespice-translator -lm
+```
+
+### Key Paths
+- Schematics: `example pedals/*.schx`
+- Generated plugins: `JUCE - [Circuit Name]/`
+- JUCE framework: `third_party/JUCE/`
+
+### VST3 Output (Windows)
+```
+JUCE - [Circuit Name]\build\[Name]___artefacts\Release\VST3\
 ```
 
 ## Project Structure

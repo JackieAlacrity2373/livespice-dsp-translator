@@ -1,4 +1,24 @@
-# Quick Reference
+# Quick Reference (Condensed)
+
+Full details are in README.md and JUCE_PLUGIN_BUILD_GUIDE.md.
+
+## Generate Plugin
+```powershell
+.\livespice-translator.exe "example pedals/MXR Distortion +.schx"
+```
+
+## Build Plugin
+```powershell
+cd "JUCE - MXR Distortion +"
+mkdir build
+cd build
+cmake ..
+cmake --build . --config Release
+```
+
+## Output Paths
+- Standalone: `build\[Name]___artefacts\Release\Standalone\[Name].exe`
+- VST3: `build\[Name]___artefacts\Release\VST3\`# Quick Reference
 
 ## Commands
 

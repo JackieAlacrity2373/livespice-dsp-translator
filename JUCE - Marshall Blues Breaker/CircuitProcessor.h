@@ -12,10 +12,6 @@
 #include <juce_dsp/juce_dsp.h>
 #include <cmath>
 
-// LiveSPICE Component Library
-#include "../third_party/livespice-components/ComponentModels.h"
-#include "../third_party/livespice-components/DSPImplementations.h"
-
 class CircuitProcessor : public juce::AudioProcessor
 {
 public:
@@ -79,6 +75,12 @@ private:
                 1.0f),
             0.8f));
 
+        // Bypass Switch (Potentiometer)
+        layout.add(std::make_unique<juce::AudioParameterBool>(
+            juce::ParameterID{"bypass", 1},
+            "Bypass",
+            false));
+
         return layout;
     }
 
@@ -88,19 +90,22 @@ private:
 
     // Stage 0: Input Buffer
     // DSP Mapping: Capacitor: 10.000000nF
-    LiveSpiceDSP::ResistorProcessor stage0_resistor;
-    LiveSpiceDSP::CapacitorProcessor stage0_capacitor;
+    // TODO: DSP implementation pending
+    // LiveSpiceDSP::ResistorProcessor stage0_resistor;
+    // LiveSpiceDSP::CapacitorProcessor stage0_capacitor;
 
     // Stage 1: Op-Amp Clipping Stage
     // DSP Mapping: Op-Amp: Circuit.IdealOpAmp, Circuit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null (Behavioral model)
-    LiveSpiceDSP::DiodeProcessor stage1_diode1;
-    LiveSpiceDSP::DiodeProcessor stage1_diode2;
-    LiveSpiceDSP::OpAmpProcessor stage1_opamp;
+    // TODO: DSP implementation pending
+    // LiveSpiceDSP::DiodeProcessor stage1_diode1;
+    // LiveSpiceDSP::DiodeProcessor stage1_diode2;
+    // LiveSpiceDSP::OpAmpProcessor stage1_opamp;
 
     // Stage 2: RC Low-Pass Filter
     // DSP Mapping: Resistor: 1.000000MΩ
-    LiveSpiceDSP::ResistorProcessor stage2_resistor;
-    LiveSpiceDSP::CapacitorProcessor stage2_capacitor;
+    // TODO: DSP implementation pending
+    // LiveSpiceDSP::ResistorProcessor stage2_resistor;
+    // LiveSpiceDSP::CapacitorProcessor stage2_capacitor;
 
     // ========================================================================
     // APVTS - AudioProcessorValueTreeState for parameter management
@@ -111,6 +116,7 @@ private:
     std::atomic<float>* driveParam = nullptr;
     std::atomic<float>* levelParam = nullptr;
     std::atomic<float>* toneParam = nullptr;
+    std::atomic<float>* bypassParam = nullptr;
 
     // Sample rate for DSP processing
     double currentSampleRate = 44100.0;

@@ -14,6 +14,7 @@ CircuitProcessor::CircuitProcessor()
 , apvts(*this, nullptr, "Parameters", createParameterLayout())
 {
     // Initialize parameter pointers
+    bypassParam = apvts.getRawParameterValue("bypass");
 }
 
 CircuitProcessor::~CircuitProcessor()
@@ -97,6 +98,7 @@ void CircuitProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
         buffer.clear (i, 0, buffer.getNumSamples());
 
     // Get current parameter values
+    float bypassValue = bypassParam->load();
 
     // ========================================================================
     // LiveSPICE Component-Based DSP Processing

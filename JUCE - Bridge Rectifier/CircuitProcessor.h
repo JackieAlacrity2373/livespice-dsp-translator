@@ -12,10 +12,6 @@
 #include <juce_dsp/juce_dsp.h>
 #include <cmath>
 
-// LiveSPICE Component Library
-#include "../third_party/livespice-components/ComponentModels.h"
-#include "../third_party/livespice-components/DSPImplementations.h"
-
 class CircuitProcessor : public juce::AudioProcessor
 {
 public:
@@ -52,6 +48,15 @@ private:
     {
         juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
+        // Bypass Switch (Potentiometer)
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"bypass", 1},
+            "Bypass",
+            juce::NormalisableRange<float>(
+                0f,
+                1f),
+            0f));
+
         return layout;
     }
 
@@ -70,6 +75,7 @@ private:
     juce::AudioProcessorValueTreeState apvts;
 
     // Parameter pointers for fast access
+    std::atomic<float>* bypassParam = nullptr;
 
     // Sample rate for DSP processing
     double currentSampleRate = 44100.0;

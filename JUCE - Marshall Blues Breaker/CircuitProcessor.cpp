@@ -17,6 +17,7 @@ CircuitProcessor::CircuitProcessor()
     driveParam = apvts.getRawParameterValue("drive");
     levelParam = apvts.getRawParameterValue("level");
     toneParam = apvts.getRawParameterValue("tone");
+    bypassParam = apvts.getRawParameterValue("bypass");
 }
 
 CircuitProcessor::~CircuitProcessor()
@@ -74,31 +75,7 @@ void CircuitProcessor::changeProgramName (int, const juce::String&)
 void CircuitProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     currentSampleRate = sampleRate;
-    juce::dsp::ProcessSpec spec;
-    spec.sampleRate = sampleRate;
-    spec.maximumBlockSize = (juce::uint32) samplesPerBlock;
-    spec.numChannels = 2;
-
-    // ========================================================================
-    // Initialize LiveSPICE Component Processors
-    // ========================================================================
-
-    // Stage 0: Input Buffer
-    // RC High-Pass Filter: f = 15.9155 Hz
-    stage0_resistor.prepare(1e+06);
-    stage0_capacitor.prepare(1e-08, 0.1); // 1e-08 F with 0.1Ω ESR
-
-    // Stage 1: Op-Amp Clipping Stage
-    // Diode clipping with Shockley equation
-    stage1_diode1.prepare("1N4148", 25.0); // Silicon diode, 25°C
-    stage1_diode2.prepare("1N4148", 25.0);
-    stage1_opamp.prepare("TL072", sampleRate); // Dual op-amp
-
-    // Stage 2: RC Low-Pass Filter
-    // RC Low-Pass Filter: fc = 15.9155 Hz
-    stage2_resistor.prepare(10000);
-    stage2_capacitor.prepare(1e-08, 0.1);
-
+    // TODO: Initialize DSP processors when implemented
 }
 
 void CircuitProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer&)
@@ -114,48 +91,17 @@ void CircuitProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
     float driveValue = driveParam->load();
     float levelValue = levelParam->load();
     float toneValue = toneParam->load();
+    bool bypassed = bypassParam->load() >= 0.5f;
 
-    // ========================================================================
-    // LiveSPICE Component-Based DSP Processing
-    // Sample-by-sample processing for accurate component modeling
-    // ========================================================================
-
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+    // Check bypass
+    if (bypassed)
     {
-        auto* channelData = buffer.getWritePointer(channel);
-        
-        for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
-        {
-            float signal = channelData[sample];
-            
-            // Stage 0: Input Buffer
-            // RC filter using LiveSPICE components
-            stage0_resistor.process(signal);
-            stage0_capacitor.process(signal, currentSampleRate);
-            signal = (float)stage0_capacitor.getVoltage();
-
-            // Stage 1: Op-Amp Clipping Stage
-            // Diode clipper with Shockley equation
-            stage1_diode1.process(signal);
-            stage1_diode2.process(-signal);
-            double clipped = stage1_diode1.getCurrent() - stage1_diode2.getCurrent();
-            stage1_opamp.process(0.0, clipped);
-            signal = (float)stage1_opamp.getOutputVoltage();
-
-            // Stage 2: RC Low-Pass Filter
-            // RC filter using LiveSPICE components
-            stage2_resistor.process(signal);
-            stage2_capacitor.process(signal, currentSampleRate);
-            signal = (float)stage2_capacitor.getVoltage();
-
-            channelData[sample] = signal;
-        }
+        // Bypass is ON - pass through without processing
+        return;
     }
 
-    // Apply gain stages with parameter control
-    juce::dsp::AudioBlock<float> block (buffer);
-    juce::dsp::ProcessContextReplacing<float> context (block);
-
+    // TODO: Implement actual DSP processing using parameters
+    // For now, the audio passes through unchanged
 }
 
 void CircuitProcessor::releaseResources()

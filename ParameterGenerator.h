@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <iomanip>
 #include <map>
 #include <algorithm>
 
@@ -58,6 +59,19 @@ namespace LiveSpice {
                 }
             }
 
+            // Always add bypass parameter to every circuit
+            JuceParameter bypassParam;
+            bypassParam.id = "bypass";
+            bypassParam.name = "Bypass";
+            bypassParam.defaultValue = 0.0f;
+            bypassParam.minValue = 0.0f;
+            bypassParam.maxValue = 1.0f;
+            bypassParam.unit = "";
+            bypassParam.componentName = "Bypass Switch";
+            bypassParam.componentType = ComponentType::Potentiometer;
+            bypassParam.scaling = JuceParameter::Scaling::Linear;
+            parameters.push_back(bypassParam);
+
             return parameters;
         }
 
@@ -84,20 +98,28 @@ namespace LiveSpice {
                 ss << "        // " << param.componentName << " (" 
                    << getComponentTypeName(param.componentType) << ")\n";
                 
-                ss << "        layout.add(std::make_unique<juce::AudioParameterFloat>(\n";
-                ss << "            juce::ParameterID{\"" << param.id << "\", 1},\n";
-                ss << "            \"" << param.name << "\",\n";
-                ss << "            juce::NormalisableRange<float>(\n";
-                ss << "                " << param.minValue << "f,\n";
-                ss << "                " << param.maxValue << "f";
-                
-                // Add logarithmic scaling if needed
-                if (param.scaling == JuceParameter::Scaling::Logarithmic) {
-                    ss << ",\n                0.0f, 0.3f"; // Skew factor for log scale
+                // Use bool for bypass parameter, float for others
+                if (param.id == "bypass") {
+                    ss << "        layout.add(std::make_unique<juce::AudioParameterBool>(\n";
+                    ss << "            juce::ParameterID{\"" << param.id << "\", 1},\n";
+                    ss << "            \"" << param.name << "\",\n";
+                    ss << "            false));\n\n";  // Default to not bypassed
+                } else {
+                    ss << "        layout.add(std::make_unique<juce::AudioParameterFloat>(\n";
+                    ss << "            juce::ParameterID{\"" << param.id << "\", 1},\n";
+                    ss << "            \"" << param.name << "\",\n";
+                    ss << "            juce::NormalisableRange<float>(\n";
+                    ss << "                " << std::fixed << std::setprecision(1) << param.minValue << "f,\n";
+                    ss << "                " << std::fixed << std::setprecision(1) << param.maxValue << "f";
+                    
+                    // Add logarithmic scaling if needed
+                    if (param.scaling == JuceParameter::Scaling::Logarithmic) {
+                        ss << ",\n                0.0f, 0.3f"; // Skew factor for log scale
+                    }
+                    
+                    ss << "),\n";
+                    ss << "            " << param.defaultValue << "f));\n\n";
                 }
-                
-                ss << "),\n";
-                ss << "            " << param.defaultValue << "f));\n\n";
             }
 
             ss << "        return layout;\n";
@@ -112,7 +134,11 @@ namespace LiveSpice {
             
             ss << "    // Parameter pointers for fast access\n";
             for (const auto& param : parameters) {
-                ss << "    std::atomic<float>* " << param.id << "Param = nullptr;\n";
+                if (param.id == "bypass") {
+                    ss << "    std::atomic<float>* " << param.id << "Param = nullptr;\n";
+                } else {
+                    ss << "    std::atomic<float>* " << param.id << "Param = nullptr;\n";
+                }
             }
             ss << "\n";
 

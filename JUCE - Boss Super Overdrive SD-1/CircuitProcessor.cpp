@@ -6,7 +6,6 @@
 */
 
 #include "CircuitProcessor.h"
-#include "CircuitProcessorEditor.h"
 
 CircuitProcessor::CircuitProcessor()
     : AudioProcessor (BusesProperties()
@@ -18,6 +17,7 @@ CircuitProcessor::CircuitProcessor()
     driveParam = apvts.getRawParameterValue("drive");
     levelParam = apvts.getRawParameterValue("level");
     toneParam = apvts.getRawParameterValue("tone");
+    bypassParam = apvts.getRawParameterValue("bypass");
 }
 
 CircuitProcessor::~CircuitProcessor()
@@ -115,6 +115,7 @@ void CircuitProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
     float driveValue = driveParam->load();
     float levelValue = levelParam->load();
     float toneValue = toneParam->load();
+    float bypassValue = bypassParam->load();
 
     // ========================================================================
     // LiveSPICE Component-Based DSP Processing
@@ -166,7 +167,7 @@ void CircuitProcessor::releaseResources()
 
 juce::AudioProcessorEditor* CircuitProcessor::createEditor()
 {
-    return new CircuitProcessorEditor (*this, apvts);
+    return new juce::GenericAudioProcessorEditor (*this);
 }
 
 bool CircuitProcessor::hasEditor() const

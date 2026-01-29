@@ -9,6 +9,10 @@ add_executable(livespice-translator
     Livespice_to_DSP.cpp
     LiveSpiceParser.cpp
     CircuitAnalyzer.cpp
+    CircuitVisualizer.cpp
+    CircuitDiagnostics.cpp
+    LiveSpiceConnectionMapper.cpp
+    JuceDSPGenerator.cpp
 )
 
 # Compiler flags

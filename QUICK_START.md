@@ -1,4 +1,25 @@
-# Quick Start Guide
+# Quick Start (Condensed)
+
+See README.md for the full quick start and build steps.
+
+## Essential Commands
+
+```powershell
+cd "h:\Live Spice DSP translation layer"
+.\livespice-translator.exe "example pedals/MXR Distortion +.schx"
+
+cd "JUCE - MXR Distortion +"
+mkdir build
+cd build
+cmake ..
+cmake --build . --config Release
+```
+
+Executable:
+
+```
+build\MXR_Distortion___artefacts\Release\Standalone\MXR Distortion +.exe
+```# Quick Start Guide
 
 ## For Immediate Testing (5 Minutes)
 

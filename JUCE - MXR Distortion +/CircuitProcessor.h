@@ -10,12 +10,7 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_dsp/juce_dsp.h>
-#include <juce_gui_basics/juce_gui_basics.h>
 #include <cmath>
-
-// LiveSPICE Component Library
-#include "../third_party/livespice-components/ComponentModels.h"
-#include "../third_party/livespice-components/DSPImplementations.h"
 
 class CircuitProcessor : public juce::AudioProcessor
 {
@@ -58,8 +53,8 @@ private:
             juce::ParameterID{"drive", 1},
             "Drive",
             juce::NormalisableRange<float>(
-                0.0f,
-                1.0f),
+                0f,
+                1f),
             0.5f));
 
         // Level (Potentiometer)
@@ -67,9 +62,18 @@ private:
             juce::ParameterID{"level", 1},
             "Level",
             juce::NormalisableRange<float>(
-                0.0f,
-                1.0f),
-            1.0f));
+                0f,
+                1f),
+            1f));
+
+        // Bypass Switch (Potentiometer)
+        layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"bypass", 1},
+            "Bypass",
+            juce::NormalisableRange<float>(
+                0f,
+                1f),
+            0f));
 
         return layout;
     }
@@ -102,12 +106,10 @@ private:
     // Parameter pointers for fast access
     std::atomic<float>* driveParam = nullptr;
     std::atomic<float>* levelParam = nullptr;
+    std::atomic<float>* bypassParam = nullptr;
 
     // Sample rate for DSP processing
     double currentSampleRate = 44100.0;
-
-    // Make APVTS accessible to editor
-    juce::AudioProcessorValueTreeState& getAPVTS() { return apvts; }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CircuitProcessor)
 };

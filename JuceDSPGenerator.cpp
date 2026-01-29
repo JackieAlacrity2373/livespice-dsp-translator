@@ -231,6 +231,14 @@ private:
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
+    // Check bypass parameter (bool)
+    bool bypassed = bypassParam->load() >= 0.5f;
+    if (bypassed)
+    {
+        // Bypass is ON - pass through without processing
+        return;
+    }
+
     // ========================================================================
     // LiveSPICE Component-Based DSP Processing
     // Sample-by-sample processing for accurate component modeling
