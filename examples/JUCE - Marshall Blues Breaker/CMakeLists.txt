@@ -15,6 +15,7 @@ juce_add_plugin(Marshall_Blues_Breaker
     DESCRIPTION "Auto-generated from LiveSpice circuit schematic"
     PLUGIN_MANUFACTURER_CODE LSDP
     PLUGIN_CODE LSDP
+    FORMATS Standalone VST3
     IS_SYNTH FALSE
     NEEDS_MIDI_INPUT FALSE
     NEEDS_MIDI_OUTPUT FALSE
@@ -25,17 +26,21 @@ juce_add_plugin(Marshall_Blues_Breaker
 # Add source files
 target_sources(Marshall_Blues_Breaker PRIVATE
     CircuitProcessor.h
-    CircuitProcessor.cpp)
+    CircuitProcessor.cpp
+    ../../src/DiodeModels.cpp
+    ../../src/DiodeModels.h)
 
 # Link JUCE
 target_link_libraries(Marshall_Blues_Breaker PRIVATE
     juce::juce_core
     juce::juce_audio_basics
+    juce::juce_audio_devices
+    juce::juce_audio_utils
     juce::juce_audio_processors
     juce::juce_dsp
     juce::juce_gui_basics)
 
 # Set C++ standard
 set_target_properties(Marshall_Blues_Breaker PROPERTIES
-    CXX_STANDARD 17
+    CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON)

@@ -18,6 +18,7 @@
                 "src/LiveSpiceConnectionMapper.cpp",
                 "src/JuceDSPGenerator.cpp",
                 "src/TopologyPatterns.cpp",
+                "src/DiodeModels.cpp",
                 "-o",
                 "livespice-translator",
                 "-lm"
@@ -97,6 +98,88 @@
             ],
             "group": {
                 "kind": "build"
+            }
+        },
+        {
+            "label": "build diode tests",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-std=c++17",
+                "-Wall",
+                "-Wextra",
+                "-O2",
+                "src/DiodeModels.cpp",
+                "test_diode_models.cpp",
+                "-o",
+                "test_diode_models",
+                "-lm"
+            ],
+            "group": {
+                "kind": "build"
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "run diode tests",
+            "type": "shell",
+            "command": ".\\test_diode_models",
+            "args": [],
+            "group": {
+                "kind": "test"
+            },
+            "dependsOn": ["build diode tests"],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "build spice validation",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-std=c++17",
+                "-Wall",
+                "-Wextra",
+                "-O2",
+                "src/DiodeModels.cpp",
+                "src/SpiceValidation.cpp",
+                "src/LiveSpiceParser.cpp",
+                "test_spice_validation.cpp",
+                "-o",
+                "test_spice_validation",
+                "-lm"
+            ],
+            "group": {
+                "kind": "build"
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "run spice validation",
+            "type": "shell",
+            "command": ".\\test_spice_validation",
+            "args": [],
+            "group": {
+                "kind": "test"
+            },
+            "dependsOn": ["build spice validation"],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        }
+            "dependsOn": ["build diode tests"],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
             }
         }
     ]

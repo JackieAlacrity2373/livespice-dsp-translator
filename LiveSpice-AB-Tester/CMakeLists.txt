@@ -9,7 +9,7 @@ add_subdirectory("${JUCE_PATH}" juce)
 
 # Create standalone application
 juce_add_gui_app(LiveSpice_AB_Tester
-    PRODUCT_NAME "LiveSpice A/B Tester"
+    PRODUCT_NAME "LiveSpiceABTester"
     COMPANY_NAME "LiveSpice DSP"
     BUNDLE_ID "com.livespicedsp.abtester"
     VERSION 1.0.0)
@@ -24,7 +24,10 @@ target_sources(LiveSpice_AB_Tester PRIVATE
     Source/ControlPanel.h
     Source/ControlPanel.cpp
     Source/ABSwitch.h
-    Source/ABSwitch.cpp)
+    Source/ABSwitch.cpp
+    Source/AutomatedCalibrator.h
+    Source/AutomatedCalibrator.cpp
+    Source/CalibrationPanel.h)
 
 # Link JUCE modules
 target_link_libraries(LiveSpice_AB_Tester PRIVATE
@@ -34,6 +37,7 @@ target_link_libraries(LiveSpice_AB_Tester PRIVATE
     juce::juce_audio_formats
     juce::juce_audio_processors
     juce::juce_audio_utils
+    juce::juce_events
     juce::juce_gui_basics
     juce::juce_gui_extra
     juce::juce_dsp)

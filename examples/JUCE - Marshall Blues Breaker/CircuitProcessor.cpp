@@ -118,7 +118,14 @@ void CircuitProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
     float driveValue = driveParam->load();
     float levelValue = levelParam->load();
     float toneValue = toneParam->load();
-    float bypassValue = bypassParam->load();
+    bool bypassValue = bypassParam->load() > 0.5f;
+
+    // Convert normalized parameters to useful ranges
+    // Drive: 0.0 - 1.0 → 1x - 10x gain (0dB to +20dB) - typical Blues Breaker range
+    float driveGain = 1.0f + driveValue * 9.0f;
+    
+    // Level: 0.0 - 1.0 → 0x - 1.5x gain (silence to +3.5dB) - realistic output level
+    float levelGain = levelValue * 1.5f;
 
     // ========================================================================
     // LiveSPICE Component-Based DSP Processing
@@ -133,6 +140,16 @@ void CircuitProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
         {
             float signal = channelData[sample];
             
+            // Bypass check
+            if (bypassValue)
+            {
+                // Bypass - pass signal through unchanged
+                continue;
+            }
+            
+            // Apply input drive gain
+            signal *= driveGain;
+            
             // Stage 0: Input Buffer
             // RC filter using LiveSPICE components\n            stage0_resistor.process(signal);\n            stage0_capacitor.process(signal, currentSampleRate);\n            signal = (float)stage0_capacitor.getVoltage();\n\n            // Stage 1: Op-Amp Clipping Stage
             // Diode clipper with Shockley equation\n            stage1_diode1.process(signal);\n            stage1_diode2.process(-signal);\n            double clipped = stage1_diode1.getCurrent() - stage1_diode2.getCurrent();\n            stage1_opamp.process(0.0, clipped);\n            signal = (float)stage1_opamp.getOutputVoltage();\n\n            // Nonlinear component processing
@@ -143,7 +160,10 @@ void CircuitProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
 
             // Stage 2: Tone Control
             // TODO: Process with LiveSPICE component\n\n            // Stage 3: RC Low-Pass Filter
-            // RC filter using LiveSPICE components\n            stage3_resistor.process(signal);\n            stage3_capacitor.process(signal, currentSampleRate);\n            signal = (float)stage3_capacitor.getVoltage();\n\n            channelData[sample] = signal;
+            // RC filter using LiveSPICE components\n            stage3_resistor.process(signal);\n            stage3_capacitor.process(signal, currentSampleRate);\n            signal = (float)stage3_capacitor.getVoltage();\n\n            // Apply output level control
+            signal *= levelGain;
+
+            channelData[sample] = signal;
         }
     }
 

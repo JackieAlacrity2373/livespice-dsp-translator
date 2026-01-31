@@ -11,6 +11,8 @@
 #include "PluginHost.h"
 #include "ControlPanel.h"
 #include "ABSwitch.h"
+#include "AutomatedCalibrator.h"
+#include "CalibrationPanel.h"
 
 class MainComponent : public juce::AudioAppComponent,
                       public juce::Timer
@@ -39,6 +41,8 @@ private:
     // UI Components
     std::unique_ptr<ControlPanel> controlPanel;
     std::unique_ptr<ABSwitch> abSwitch;
+    std::unique_ptr<AutomatedCalibrator> calibrator;
+    std::unique_ptr<CalibrationPanel> calibrationPanel;
 
     // Plugin selection
     juce::TextButton loadPluginAButton{"Load LiveSpice VST (A)"};
@@ -61,6 +65,7 @@ private:
     void loadPluginA();
     void loadPluginB();
     void updateStatus();
+    void setupCalibration();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

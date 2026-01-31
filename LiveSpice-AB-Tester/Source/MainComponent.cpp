@@ -20,6 +20,11 @@ MainComponent::MainComponent()
     abSwitch = std::make_unique<ABSwitch>();
     addAndMakeVisible(*abSwitch);
 
+    // Initialize calibration system
+    calibrator = std::make_unique<AutomatedCalibrator>();
+    calibrationPanel = std::make_unique<CalibrationPanel>(*calibrator);
+    addAndMakeVisible(*calibrationPanel);
+
     abSwitch->onSwitch = [this](bool useA) {
         usePluginA = useA;
         updateStatus();
@@ -168,7 +173,12 @@ void MainComponent::resized()
     area.removeFromTop(10);
     
     // Control panel
-    controlPanel->setBounds(area.reduced(10));
+    auto controlArea = area.removeFromLeft(getWidth() / 2).reduced(10);
+    controlPanel->setBounds(controlArea);
+    
+    // Calibration panel
+    auto calibrationArea = area.reduced(10);
+    calibrationPanel->setBounds(calibrationArea);
 }
 
 void MainComponent::timerCallback()
@@ -207,6 +217,7 @@ void MainComponent::loadPluginA()
                 controlPanel->setParameterList(params);
                 
                 updateStatus();
+                setupCalibration();
             }
             else if (file.exists())
             {
@@ -235,6 +246,7 @@ void MainComponent::loadPluginB()
                     juce::dontSendNotification);
                 
                 updateStatus();
+                setupCalibration();
             }
             else if (file.exists())
             {
@@ -268,4 +280,75 @@ void MainComponent::updateStatus()
     }
     
     statusLabel.setText(status, juce::dontSendNotification);
+}
+
+void MainComponent::setupCalibration()
+{
+    // Only setup calibration if both plugins are loaded
+    if (!isPluginALoaded || !isPluginBLoaded || !calibrator)
+        return;
+    
+    // Get common parameters from both plugins
+    auto paramsA = pluginHostA->getParameterList();
+    auto paramsB = pluginHostB->getParameterList();
+    
+    // Add common parameters to calibrator
+    // This finds parameters that exist in both plugins
+    for (const auto& paramA : paramsA)
+    {
+        for (const auto& paramB : paramsB)
+        {
+            // If parameter names match (case-insensitive), add to calibrator
+            if (paramA.name.equalsIgnoreCase(paramB.name))
+            {
+                calibrator->addParameter(
+                    paramA.id.toStdString(),
+                    paramA.minValue,
+                    paramA.maxValue,
+                    paramA.defaultValue
+                );
+                break;
+            }
+        }
+    }
+    
+    // Wire up parameter change callback
+    calibrator->onParameterChange = [this](const std::string& paramName, float value) {
+        // Apply to both plugins
+        juce::String paramId(paramName);
+        if (pluginHostA)
+            pluginHostA->setParameter(paramId, value);
+        if (pluginHostB)
+            pluginHostB->setParameter(paramId, value);
+    };
+    
+    // Wire up audio processing callbacks
+    calibrator->onProcessReference = [this](juce::AudioBuffer<float>& buffer) {
+        // Process through Plugin A (LiveSpice reference)
+        if (pluginHostA)
+        {
+            juce::MidiBuffer midiBuffer;
+            pluginHostA->processBlock(buffer, midiBuffer, 0, buffer.getNumSamples());
+        }
+    };
+    
+    calibrator->onProcessTarget = [this](juce::AudioBuffer<float>& buffer) {
+        // Process through Plugin B (Digital target)
+        if (pluginHostB)
+        {
+            juce::MidiBuffer midiBuffer;
+            pluginHostB->processBlock(buffer, midiBuffer, 0, buffer.getNumSamples());
+        }
+    };
+    
+    // Configure calibration settings
+    AutomatedCalibrator::CalibrationSettings settings;
+    settings.maxIterations = 100;
+    settings.convergenceThreshold = 1e-4f;
+    settings.learningRate = 0.1f;
+    settings.useAdaptiveStep = true;
+    settings.testFrequency = 440.0f;  // A4 note
+    settings.testAmplitude = 0.5f;
+    settings.testDurationSamples = 8192;
+    calibrator->setCalibrationSettings(settings);
 }

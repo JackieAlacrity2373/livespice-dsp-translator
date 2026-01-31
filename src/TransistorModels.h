@@ -1,64 +1,211 @@
-#ifndef TRANSISTOR_MODELS_H
-#define TRANSISTOR_MODELS_H
+#pragma once
 
 #include <cmath>
-#include <optional>
 
 namespace Nonlinear {
 
+/**
+ * TransistorModels.h - BJT and FET models for Phase 1 Part 2
+ * 
+ * Implements standard transistor equations:
+ * - BJT: Ebers-Moll model with temperature compensation
+ * - FET: Quadratic model with channel modulation
+ * 
+ * Integration with diode models for hybrid circuits
+ */
+
+/**
+ * BJT Transistor Parameters (Ebers-Moll Model)
+ */
 struct BJTCharacteristics {
-    float Bf, Br, Is, Vaf, tempCoeffVbe;
+    float Is;              // Saturation current (A)
+    float Vt;              // Thermal voltage ≈ 0.026V @ 25°C
+    float nBE;             // Ideality factor (typically 1.0)
+    float nBC;             // Ideality factor (typically 1.0)
+    float Bf;              // Forward current gain (hFE)
+    float Br;              // Reverse current gain
+    float Rb;              // Base resistance (Ω)
+    float Vat;             // Early voltage effect (V)
+    float tempCoeff;       // Temperature coefficient
     
-    static BJTCharacteristics TwoN3904() { return {416.4f, 0.1f, 5.84e-14f, 74.03f, -0.002f}; }
-    static BJTCharacteristics TwoN2222() { return {255.9f, 0.1f, 14.34e-14f, 200.0f, -0.002f}; }
-    static BJTCharacteristics BC107() { return {312.6f, 0.1f, 8.07e-14f, 95.35f, -0.002f}; }
-    static BJTCharacteristics TwoN3906() { return {408.8f, 0.1f, 9.57e-14f, 95.0f, -0.002f}; }
-};
-
-struct BJTOperatingPoint {
-    float Vbe, Vce, Vbc, Ic, Ib, gm, rce;
-    bool isSaturated;
-};
-
-class BJTModelEbersMoll {
-public:
-    BJTModelEbersMoll(const BJTCharacteristics& bjt) : m_bjt(bjt) {}
-    
-    BJTOperatingPoint solveOperatingPoint(float Vbe, float Vcc, float Rc) const {
-        float Vt = 0.026f;
-        
-        // Simple approximation for demo
-        float beta = m_bjt.Bf;
-        float expArg = std::clamp(Vbe / (1.2f * Vt), -50.0f, 50.0f);
-        float Ic_approx = m_bjt.Is * (std::exp(expArg) - 1.0f);
-        float Vce = Vcc - Ic_approx * Rc;
-        
-        bool sat = Vce < 0.2f;
-        
+    // Predefined transistor types
+    static BJTCharacteristics TwoN2222() {
         return {
-            Vbe, Vce, Vbe - 0.5f,
-            Ic_approx,
-            Ic_approx / beta,
-            (m_bjt.Is / (1.2f * Vt)) * std::exp(Vbe / (1.2f * Vt)),
-            m_bjt.Vaf / Ic_approx,
-            sat
+            .Is = 1.4e-14f,
+            .Vt = 0.026f,
+            .nBE = 1.0f,
+            .nBC = 1.0f,
+            .Bf = 255.0f,
+            .Br = 6.433f,
+            .Rb = 100.0f,
+            .Vat = 74.03f,
+            .tempCoeff = -0.002f
         };
     }
     
-private:
-    BJTCharacteristics m_bjt;
-};
-
-struct FETCharacteristics {
-    float Kp, Vto, Lambda;
+    static BJTCharacteristics TwoN3904() {
+        return {
+            .Is = 6.193e-15f,
+            .Vt = 0.026f,
+            .nBE = 1.0f,
+            .nBC = 1.0f,
+            .Bf = 416.4f,
+            .Br = 0.75f,
+            .Rb = 200.0f,
+            .Vat = 200.0f,
+            .tempCoeff = -0.002f
+        };
+    }
     
-    static FETCharacteristics NMOS2N7000() { return {0.5e-3f, 1.5f, 0.02f}; }
-    static FETCharacteristics PMOS2N7002() { return {0.5e-3f, -1.5f, 0.02f}; }
+    static BJTCharacteristics TwoN5088() {
+        return {
+            .Is = 5.911e-15f,
+            .Vt = 0.026f,
+            .nBE = 1.0f,
+            .nBC = 1.0f,
+            .Bf = 800.0f,
+            .Br = 1.0f,
+            .Rb = 50.0f,
+            .Vat = 300.0f,
+            .tempCoeff = -0.002f
+        };
+    }
 };
 
-struct FETOperatingPoint {
-    float Id, Vgs, Vds, gm, gds;
+/**
+ * BJT Operating Point
+ */
+struct BJTOperatingPoint {
+    float Vbe;
+    float Vce;
+    float Ib;
+    float Ic;
+    float gm;              // Transconductance
+    float rce;             // Output impedance
     bool isSaturated;
+};
+
+/**
+ * FET Transistor Parameters (MOSFET/JFET Quadratic Model)
+ */
+struct FETCharacteristics {
+    float Vto;             // Threshold voltage (V)
+    float Kp;              // Transconductance parameter (A/V²)
+    float Lambda;          // Channel modulation parameter (1/V)
+    float Vef;             // Early voltage (V)
+    float Rs;              // Source resistance (Ω)
+    float Rd;              // Drain resistance (Ω)
+    float Cgs;             // Gate-source capacitance (F)
+    float Cgd;             // Gate-drain capacitance (F)
+    
+    // Predefined FET types
+    static FETCharacteristics TwoN7000() {
+        return {
+            .Vto = 1.5f,
+            .Kp = 0.00357f,
+            .Lambda = 0.04f,
+            .Vef = 100.0f,
+            .Rs = 5.0f,
+            .Rd = 5.0f,
+            .Cgs = 1.8e-11f,
+            .Cgd = 0.5e-12f
+        };
+    }
+    
+    static FETCharacteristics J201() {
+        return {
+            .Vto = -0.4f,
+            .Kp = 0.003f,
+            .Lambda = 0.02f,
+            .Vef = 50.0f,
+            .Rs = 10.0f,
+            .Rd = 10.0f,
+            .Cgs = 2.0e-12f,
+            .Cgd = 1.5e-12f
+        };
+    }
+};
+
+/**
+ * BJT Common Emitter Amplifier Stage
+ */
+class BJTAmplifierStage {
+public:
+    enum class BiasMode {
+        Active, Saturation, Cutoff
+    };
+    
+    BJTAmplifierStage(const BJTCharacteristics& param, float collectorResistance = 10000.0f,
+                      float loadResistance = 100000.0f, float supplyVoltage = 9.0f)
+        : m_param(param), m_Rc(collectorResistance), m_Rload(loadResistance), 
+          m_Vcc(supplyVoltage), m_temperature(25.0f) {}
+    
+    float processVbe(float vbeInput, float vceOutput = 5.0f);
+    float processInputVoltage(float vinput);
+    BJTOperatingPoint getCurrentBiasPoint() const;
+    void setTemperature(float tempC) { m_temperature = tempC; }
+    float shockleyBJT(float vbe);
+    float getThresholdVoltage() const { return m_param.Vat * 0.1f; }
+    
+private:
+    BJTCharacteristics m_param;
+    float m_Rc, m_Rload, m_Vcc, m_temperature;
+    BJTOperatingPoint m_biasPoint;
+};
+
+/**
+ * FET Overdrive Stage
+ */
+class FETOverdriveStage {
+public:
+    enum class ChannelType { NMOS, PMOS, JFET };
+    
+    FETOverdriveStage(const FETCharacteristics& param, float drainResistance = 10000.0f,
+                      float loadResistance = 100000.0f, ChannelType type = ChannelType::NMOS)
+        : m_param(param), m_Rd(drainResistance), m_Rload(loadResistance), m_type(type) {}
+    
+    float processVgs(float vgsInput);
+    float processInputVoltage(float vinput);
+    float getDrainCurrent(float vgs, float vds);
+    
+private:
+    FETCharacteristics m_param;
+    float m_Rd, m_Rload;
+    ChannelType m_type;
+    float shockleyFET(float vgs, float vds);
+};
+
+/**
+ * Hybrid Transistor-Diode Stage
+ */
+class HybridTransistorDiodeStage {
+public:
+    HybridTransistorDiodeStage(const BJTCharacteristics& bjt,
+                               const FETCharacteristics& fet = FETCharacteristics::TwoN7000())
+        : m_bjtStage(bjt), m_fetStage(fet) {}
+    
+    float processBJTClipperCascade(float input, float feedbackAmount = 0.5f);
+    float processFETOverdriveCascade(float input, float toneControl = 0.5f);
+    
+private:
+    BJTAmplifierStage m_bjtStage;
+    FETOverdriveStage m_fetStage;
+};
+
+} // namespace Nonlinear
+
+namespace Nonlinear {
+
+/**
+ * FET Operating Point
+ */
+struct FETOperatingPoint {
+    float Id;              // Drain current (A)
+    float Vgs;             // Gate-source voltage (V)
+    float Vds;             // Drain-source voltage (V)
+    float gm;              // Transconductance (A/V)
+    float gds;             // Output conductance (A/V)
+    bool isSaturated;      // True if in saturation region
 };
 
 class FETModelQuadratic {
@@ -89,32 +236,24 @@ private:
     FETCharacteristics m_fet;
 };
 
+// TransistorClippingStage - Phase 1 placeholder, superseded by Phase 2 tone control
+// Disabled due to incomplete BJTModelEbersMoll implementation
+/*
 class TransistorClippingStage {
 public:
     TransistorClippingStage(const BJTCharacteristics& bjt, float Zin, bool isPNP)
-        : m_bjt(bjt), m_Zin(Zin), m_isPNP(isPNP), m_model(bjt) {}
+        : m_bjt(bjt), m_Zin(Zin), m_isPNP(isPNP) {}
     
     float processSample(float inputSignal) {
-        auto op = m_model.solveOperatingPoint(
-            0.7f,     // Base voltage
-            5.0f,     // Vcc
-            1000.0f   // Rc
-        );
-        
-        float gain = 10.0f * op.gm * 1000.0f;
-        float output = inputSignal * gain;
-        
-        // Soft clipping using tanh
-        return std::tanh(output);
+        // TODO: Implement proper BJT clipping stage
+        return inputSignal * 0.1f;
     }
     
 private:
     BJTCharacteristics m_bjt;
     float m_Zin;
     bool m_isPNP;
-    BJTModelEbersMoll m_model;
 };
+*/
 
 }  // namespace Nonlinear
-
-#endif

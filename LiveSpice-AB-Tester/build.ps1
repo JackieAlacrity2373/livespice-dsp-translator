@@ -37,7 +37,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # Check for executable
-$exePath = ".\LiveSpice_AB_Tester_artefacts\Release\LiveSpice A_B Tester.exe"
+$exePath = ".\LiveSpice_AB_Tester_artefacts\Release\LiveSpiceABTester.exe"
 if (Test-Path $exePath) {
     $exeSize = [math]::Round((Get-Item $exePath).Length / 1MB, 2)
     Write-Host "`n=== Build Successful ===" -ForegroundColor Green
@@ -51,6 +51,7 @@ if (Test-Path $exePath) {
     }
 } else {
     Write-Host "`nBuild completed but executable not found!" -ForegroundColor Yellow
+    Write-Host "Expected path: $exePath" -ForegroundColor Yellow
     Write-Host "Check the build output for errors." -ForegroundColor Yellow
 }
 

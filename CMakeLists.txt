@@ -14,6 +14,8 @@ add_executable(livespice-translator
     src/LiveSpiceConnectionMapper.cpp
     src/JuceDSPGenerator.cpp
     src/TopologyPatterns.cpp
+    src/DiodeModels.cpp
+    src/SpiceValidation.cpp
 )
 
 # Compiler flags

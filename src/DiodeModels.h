@@ -55,7 +55,7 @@ private:
 class DiodeNewtonRaphson {
 public:
     struct SolverConfig {
-        int maxIterations = 20;
+        int maxIterations = 25;  // Increased for high voltage convergence
         float convergenceTolerance = 1e-6f;
         float initialGuess = 0.3f;
     };
@@ -102,26 +102,28 @@ public:
     enum class TopologyType { SeriesDiode, ParallelDiode, BackToBackDiodes, BridgeClipping };
     
     DiodeClippingStage(const DiodeCharacteristics& diode, TopologyType t = TopologyType::BackToBackDiodes, float r = 10000.0f)
-        : m_topology(t), m_impedance(r), m_diode(diode), m_lut(diode) {}
+        : m_topology(t), m_impedance(r), m_diode(diode), m_lut(diode), m_solver(diode) {}
     
-    float processSample(float inputSample) {
-        switch (m_topology) {
-            case TopologyType::BackToBackDiodes:
-                if (inputSample > 0.6f) return 0.6f;
-                if (inputSample < -0.6f) return -0.6f;
-                return inputSample;
-            case TopologyType::SeriesDiode:
-                return inputSample > 0.6f ? 0.6f : (inputSample < -5.0f ? -5.0f : inputSample);
-            case TopologyType::ParallelDiode:
-                return inputSample > 0.6f ? std::clamp(inputSample, 0.0f, 0.6f) : inputSample;
-            case TopologyType::BridgeClipping: {
-                float abs_in = std::abs(inputSample);
-                float clipped = std::clamp(abs_in, 0.0f, 1.2f);
-                return inputSample < 0 ? -clipped : clipped;
-            }
-            default:
-                return inputSample;
-        }
+    /**
+     * Process sample through diode clipping stage
+     * Uses Newton-Raphson to solve the implicit circuit equation
+     */
+    float processSample(float inputSample);
+    
+    /**
+     * Set the load impedance (affects clipping behavior)
+     */
+    void setLoadImpedance(float ohms) { m_impedance = ohms; }
+    
+    /**
+     * Get the soft clipping threshold voltage
+     * For back-to-back diodes, soft clipping starts at ~0.7 * forward voltage
+     */
+    float getThresholdVoltage() const {
+        // Calculate actual diode forward voltage
+        float Vt = m_diode.n * m_diode.Vt;
+        float Vf = Vt * std::log(1e-6f / m_diode.Is + 1.0f);  // ~0.65V for 1N4148
+        return Vf * 0.7f;  // Soft clipping starts at 70% of forward voltage
     }
     
 private:
@@ -129,6 +131,16 @@ private:
     float m_impedance;
     DiodeCharacteristics m_diode;
     DiodeLUT m_lut;
+    DiodeNewtonRaphson m_solver;
+    
+    // Helper: solve circuit equation for series diode configuration
+    float solveSeriesDiodeCircuit(float vApplied);
+    
+    // Helper: solve circuit equation for parallel diode configuration
+    float solveParallelDiodeCircuit(float vApplied);
+    
+    // Helper: solve back-to-back diode configuration
+    float solveBackToBackDiodes(float vApplied);
 };
 
 }  // namespace Nonlinear

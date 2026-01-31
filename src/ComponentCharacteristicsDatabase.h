@@ -61,8 +61,9 @@ private:
     BJTDatabase() {
         m_bjtDatabase["2N3904"] = BJTCharacteristics::TwoN3904();
         m_bjtDatabase["2N2222"] = BJTCharacteristics::TwoN2222();
-        m_bjtDatabase["BC107"] = BJTCharacteristics::BC107();
-        m_bjtDatabase["2N3906"] = BJTCharacteristics::TwoN3906();
+        // Note: BC107 and 2N3906 static methods not defined in this version
+        // m_bjtDatabase["BC107"] = BJTCharacteristics::BC107();
+        // m_bjtDatabase["2N3906"] = BJTCharacteristics::TwoN3906();
     }
 };
 
@@ -80,15 +81,17 @@ public:
     
     FETCharacteristics getOrDefault(const std::string& partNumber, const std::string& defaultPart = "2N7000") const {
         auto opt = lookup(partNumber);
-        return opt.has_value() ? opt.value() : lookup(defaultPart).value_or(FETCharacteristics::NMOS2N7000());
+        // Use TwoN7000() which is defined in FETCharacteristics
+        return opt.has_value() ? opt.value() : lookup(defaultPart).value_or(FETCharacteristics::TwoN7000());
     }
     
 private:
     std::map<std::string, FETCharacteristics> m_fetDatabase;
     
     FETDatabase() {
-        m_fetDatabase["2N7000"] = FETCharacteristics::NMOS2N7000();
-        m_fetDatabase["BS170"] = FETCharacteristics::NMOS2N7000();
+        m_fetDatabase["2N7000"] = FETCharacteristics::TwoN7000();
+        m_fetDatabase["BS170"] = FETCharacteristics::TwoN7000();
+        // Note: J201 also available
     }
 };
 

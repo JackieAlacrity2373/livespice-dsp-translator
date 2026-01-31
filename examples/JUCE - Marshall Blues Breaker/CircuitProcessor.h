@@ -13,9 +13,9 @@
 #include <cmath>
 
 // Nonlinear component models
-#include "../../DiodeModels.h"
-#include "../../TransistorModels.h"
-#include "../../ComponentCharacteristicsDatabase.h"
+#include "../../src/DiodeModels.h"
+#include "../../src/TransistorModels.h"
+#include "../../src/ComponentCharacteristicsDatabase.h"
 
 // LiveSPICE Component Library
 #include "../../third_party/livespice-components/ComponentModels.h"
