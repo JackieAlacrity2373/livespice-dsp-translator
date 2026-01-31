@@ -6,14 +6,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Add the executable
 add_executable(livespice-translator
-    Livespice_to_DSP.cpp
-    LiveSpiceParser.cpp
-    CircuitAnalyzer.cpp
-    CircuitVisualizer.cpp
-    CircuitDiagnostics.cpp
-    LiveSpiceConnectionMapper.cpp
-    JuceDSPGenerator.cpp
-    TopologyPatterns.cpp
+    src/Livespice_to_DSP.cpp
+    src/LiveSpiceParser.cpp
+    src/CircuitAnalyzer.cpp
+    src/CircuitVisualizer.cpp
+    src/CircuitDiagnostics.cpp
+    src/LiveSpiceConnectionMapper.cpp
+    src/JuceDSPGenerator.cpp
+    src/TopologyPatterns.cpp
 )
 
 # Compiler flags

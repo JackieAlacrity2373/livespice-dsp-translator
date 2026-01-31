@@ -10,14 +10,14 @@
                 "-Wall",
                 "-Wextra",
                 "-O2",
-                "Livespice_to_DSP.cpp",
-                "LiveSpiceParser.cpp",
-                "CircuitAnalyzer.cpp",
-                "CircuitVisualizer.cpp",
-                "CircuitDiagnostics.cpp",
-                "LiveSpiceConnectionMapper.cpp",
-                "JuceDSPGenerator.cpp",
-                "TopologyPatterns.cpp",
+                "src/Livespice_to_DSP.cpp",
+                "src/LiveSpiceParser.cpp",
+                "src/CircuitAnalyzer.cpp",
+                "src/CircuitVisualizer.cpp",
+                "src/CircuitDiagnostics.cpp",
+                "src/LiveSpiceConnectionMapper.cpp",
+                "src/JuceDSPGenerator.cpp",
+                "src/TopologyPatterns.cpp",
                 "-o",
                 "livespice-translator",
                 "-lm"
@@ -40,7 +40,7 @@
             "command": "bash",
             "args": [
                 "-c",
-                "g++ -std=c++17 -Wall -Wextra -O2 Livespice_to_DSP.cpp LiveSpiceParser.cpp CircuitAnalyzer.cpp CircuitVisualizer.cpp CircuitDiagnostics.cpp LiveSpiceConnectionMapper.cpp JuceDSPGenerator.cpp TopologyPatterns.cpp -o livespice-translator -lm && ./livespice-translator"
+                "g++ -std=c++17 -Wall -Wextra -O2 src/Livespice_to_DSP.cpp src/LiveSpiceParser.cpp src/CircuitAnalyzer.cpp src/CircuitVisualizer.cpp src/CircuitDiagnostics.cpp src/LiveSpiceConnectionMapper.cpp src/JuceDSPGenerator.cpp src/TopologyPatterns.cpp -o livespice-translator -lm && ./livespice-translator"
             ],
             "group": {
                 "kind": "build"
@@ -75,7 +75,7 @@
             "command": "powershell",
             "args": [
                 "-Command",
-                ".\\livespice-translator \"example pedals/Boss Super Overdrive SD-1.schx\""
+                ".\\livespice-translator \"examples/example pedals/Boss Super Overdrive SD-1.schx\""
             ],
             "group": {
                 "kind": "test"
