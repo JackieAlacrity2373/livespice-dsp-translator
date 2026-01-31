@@ -1,4 +1,4 @@
-# LiveSpice DSP Translator
+# LiveSpice To JUCE DSP Translator
 
 Convert LiveSpice guitar pedal schematics to JUCE audio plugins with real-time pattern-matched DSP processing.
 
