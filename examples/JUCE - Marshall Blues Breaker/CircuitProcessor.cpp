@@ -231,7 +231,6 @@ void CircuitProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
             stage0_resistor.process(signal);
             stage0_capacitor.process(signal, currentSampleRate);
             signal = (float)stage0_capacitor.getVoltage();
-<<<<<<< HEAD
 
             // Stage 1: Op-Amp Clipping Stage
             // TL072 op-amp with diode feedback clipping (unity gain buffer configuration)
