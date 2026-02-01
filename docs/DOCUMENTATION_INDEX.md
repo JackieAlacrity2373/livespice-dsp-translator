@@ -21,6 +21,9 @@
 - **[BUILD_INFRASTRUCTURE.md](BUILD_INFRASTRUCTURE.md)** - Cmake + Visual Studio setup
 - **[JUCE_PLUGIN_BUILD_GUIDE.md](JUCE_PLUGIN_BUILD_GUIDE.md)** - Plugin compilation
 
+### Contributing & Style
+- **[DOCUMENTATION_STYLE_GUIDE.md](DOCUMENTATION_STYLE_GUIDE.md)** - Documentation conventions and standards
+
 ### A/B Tester (Secondary Module)
 - **[LiveSpice-AB-Tester/README.md](LiveSpice-AB-Tester/README.md)** - Comparator tool docs
 

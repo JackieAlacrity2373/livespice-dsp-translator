@@ -15,6 +15,7 @@ Key docs:
 - [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md) - Technical design
 - [PHASE_2_COMPLETION_FINAL.md](PHASE_2_COMPLETION_FINAL.md) - Pattern matching details
 - [BUILD_INFRASTRUCTURE.md](BUILD_INFRASTRUCTURE.md) - Build system reference
+- [DOCUMENTATION_STYLE_GUIDE.md](DOCUMENTATION_STYLE_GUIDE.md) - Documentation standards
 
 ##  Quick Start (5 minutes)
 
