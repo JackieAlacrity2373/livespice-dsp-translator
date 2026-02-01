@@ -141,5 +141,63 @@ private:
     // Sample rate for DSP processing
     double currentSampleRate = 44100.0;
 
+    // ========================================================================
+    // DEBUG MODE - Audio Diagnostics
+    // ========================================================================
+    bool enableDebugLogging = false;  // Set to true to enable audio diagnostics
+    int debugSampleCounter = 0;
+    
+    // Audio statistics for polling/timing analysis
+    struct AudioStats {
+        float peakLevel = 0.0f;
+        float minLevel = 0.0f;
+        float maxLevel = 0.0f;
+        int zeroCrossingCount = 0;
+        int crackleSuspectSamples = 0;  // Samples with sudden amplitude jumps
+        float averageLevelInBypass = 0.0f;
+    } audioStats;
+    
+    // Helper function for detecting polling artifacts (sudden jumps > threshold)
+    inline bool isCrackleArtifact(float prevSample, float currSample, float threshold = 0.5f)
+    {
+        return std::abs(currSample - prevSample) > threshold;
+    }
+
+    // ========================================================================
+    // NOISE REDUCTION - Anti-denormalization, DC removal, parameter smoothing
+    // ========================================================================
+    
+    // Tone control: Proper low-pass filter with variable cutoff frequency
+    std::array<float, 100> toneCoefficients;  // Lookup table for filter coefficients
+    float toneFilterState = 0.0f;
+    
+    // Parameter smoothing to prevent clicks/pops from UI changes
+    float prevParameterSmooth_drive = 1.0f;
+    float prevParameterSmooth_level = 0.3f;
+    float prevParameterSmooth_tone = 0.5f;  // Tone smoothing (0-1)
+    
+    // DC offset removal accumulator (high-pass filter)
+    float dcOffsetAccumulator = 0.0f;
+    
+    // Helper function to pre-calculate tone control filter coefficients
+    void updateToneControlCoefficients(double sampleRate)
+    {
+        // Pre-calculate coefficients for single-pole low-pass filter
+        // Cutoff range: 500 Hz (index 0) to 20 kHz (index 99)
+        const float minCutoff = 500.0f;
+        const float maxCutoff = 20000.0f;
+        
+        for (int i = 0; i < 100; ++i)
+        {
+            float normalizedIndex = static_cast<float>(i) / 99.0f;
+            // Logarithmic interpolation for more natural tone sweep
+            float cutoff = minCutoff * std::pow(maxCutoff / minCutoff, normalizedIndex);
+            
+            // Single-pole low-pass filter coefficient: fc / sampleRate
+            toneCoefficients[i] = (2.0f * juce::MathConstants<float>::pi * cutoff) / static_cast<float>(sampleRate);
+            toneCoefficients[i] = std::min(toneCoefficients[i], 0.99f);  // Clamp to valid range
+        }
+    }
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CircuitProcessor)
 };
