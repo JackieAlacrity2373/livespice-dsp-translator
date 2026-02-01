@@ -60,21 +60,21 @@ The LiveSpice A/B Tester is being refactored to create a robust, maintainable au
 └─────────────────────────────────────────────────────────────┘
 
 Issues with Current Design:
-❌ Complex external VST3 hosting
-❌ Fragile parameter extraction (only 2 of 3 parameters working)
-❌ Audio processing but no audible output
-❌ XML parsing overhead
-❌ Difficult to extend with new circuits
+ Complex external VST3 hosting
+ Fragile parameter extraction (only 2 of 3 parameters working)
+ Audio processing but no audible output
+ XML parsing overhead
+ Difficult to extend with new circuits
 ```
 
 ### 2.2 Current Component Files
 | File | Purpose | Lines | Status |
 |------|---------|-------|--------|
-| `MainComponent.h/cpp` | Core audio component, UI layout, menu | 593 | ✅ Functional |
-| `PluginHost.h/cpp` | VST3 loading and hosting wrapper | 370 | ❌ Problematic |
-| `ControlPanel.h/cpp` | Parameter slider UI | ~150 | ⚠️ Incomplete |
-| `ABSwitch.h/cpp` | Visual A/B toggle | ~50 | ✅ Working |
-| `Main.cpp` | Application entry point | ~30 | ✅ Working |
+| `MainComponent.h/cpp` | Core audio component, UI layout, menu | 593 |  Functional |
+| `PluginHost.h/cpp` | VST3 loading and hosting wrapper | 370 |  Problematic |
+| `ControlPanel.h/cpp` | Parameter slider UI | ~150 |  Incomplete |
+| `ABSwitch.h/cpp` | Visual A/B toggle | ~50 |  Working |
+| `Main.cpp` | Application entry point | ~30 |  Working |
 
 ### 2.3 CircuitProcessor Infrastructure (6 Pedals)
 Each pedal project has a native `CircuitProcessor` class:
@@ -177,12 +177,12 @@ public:
 └──────────────────────────────────────────────────────────────┘
 
 Design Advantages:
-✅ Simple, direct audio routing
-✅ No external VST hosting complexity
-✅ Direct APVTS parameter access
-✅ Scalable to add more CircuitProcessors
-✅ Better audio fidelity (less wrapper overhead)
-✅ Easier debugging and maintenance
+ Simple, direct audio routing
+ No external VST hosting complexity
+ Direct APVTS parameter access
+ Scalable to add more CircuitProcessors
+ Better audio fidelity (less wrapper overhead)
+ Easier debugging and maintenance
 ```
 
 ### 3.2 Core Components
@@ -626,11 +626,11 @@ LiveSpice-AB-Tester/
 ### 7.1 Functionality
 | Feature | Current | Refactored | Impact |
 |---------|---------|-----------|--------|
-| VST3 Hosting | ✅ Working | ✅ Maintained | No regression |
-| Native DSP | ❌ Not available | ✅ New | Can test DSP directly |
-| Parameters | ⚠️ 2 of 3 showing | ✅ All showing | Full control |
-| Audio Output | ❌ No sound | ✅ Fixed | User can hear comparison |
-| A/B Toggle | ✅ Working | ✅ Improved | Faster switching |
+| VST3 Hosting |  Working |  Maintained | No regression |
+| Native DSP |  Not available |  New | Can test DSP directly |
+| Parameters |  2 of 3 showing |  All showing | Full control |
+| Audio Output |  No sound |  Fixed | User can hear comparison |
+| A/B Toggle |  Working |  Improved | Faster switching |
 
 ### 7.2 Performance
 | Metric | Current | Target | Improvement |
@@ -773,9 +773,9 @@ If refactoring encounters critical issues:
    - **Recommendation:** Phase 2 (not in Phase 1)
 
 ### Resolved Decisions
-- ✅ **DSP Integration:** Use embedded CircuitProcessor (not external VST)
-- ✅ **VST3 Support:** Maintain via PluginHostWrapper abstraction
-- ✅ **JUCE Version:** Continue with 7.x (no upgrade needed)
+-  **DSP Integration:** Use embedded CircuitProcessor (not external VST)
+-  **VST3 Support:** Maintain via PluginHostWrapper abstraction
+-  **JUCE Version:** Continue with 7.x (no upgrade needed)
 
 ---
 

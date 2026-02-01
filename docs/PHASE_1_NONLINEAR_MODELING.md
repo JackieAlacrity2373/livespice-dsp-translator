@@ -12,22 +12,22 @@ Phase 1 introduces accurate nonlinear modeling for diodes and transistors, repla
 
 ## Deliverables Status
 
-### ✅ 1.1 Diode Shockley Equation Implementation
+###  1.1 Diode Shockley Equation Implementation
 
 **Files Created:**
 - `DiodeModels.h` - Complete diode modeling framework
 
 **Features Implemented:**
-- ✅ Shockley equation: $I = I_s(e^{V/(nV_t)} - 1)$
-- ✅ DiodeLUT class (512-entry lookup table for exp() function)
-- ✅ DiodeNewtonRaphson solver with configurable convergence
-- ✅ DiodeClippingStage with 4 topology options:
+-  Shockley equation: $I = I_s(e^{V/(nV_t)} - 1)$
+-  DiodeLUT class (512-entry lookup table for exp() function)
+-  DiodeNewtonRaphson solver with configurable convergence
+-  DiodeClippingStage with 4 topology options:
   - Series diode (standard distortion)
   - Parallel/shunt diode (soft compression)
   - Back-to-back diodes (symmetric clipping)
   - Bridge clipping (low output impedance)
-- ✅ Pre-configured common diodes (1N4148, 1N914, OA90 germanium, 1N4007)
-- ✅ Temperature coefficient support
+-  Pre-configured common diodes (1N4148, 1N914, OA90 germanium, 1N4007)
+-  Temperature coefficient support
 
 **Code Examples:**
 
@@ -62,25 +62,25 @@ for (int sample = 0; sample < numSamples; ++sample) {
 - Newton-Raphson: ~1-2µs per convergence (5 iterations typical)
 - Memory footprint: 2KB per LUT (small)
 
-### ✅ 1.2 Transistor Modeling (BJT & FET)
+###  1.2 Transistor Modeling (BJT & FET)
 
 **Files Created:**
 - `TransistorModels.h` - Complete transistor modeling framework
 
 **Features Implemented:**
-- ✅ BJT Ebers-Moll model with Early voltage effect
-- ✅ BJTCharacteristics with common transistor presets:
+-  BJT Ebers-Moll model with Early voltage effect
+-  BJTCharacteristics with common transistor presets:
   - 2N3904 (high-gain NPN, typical guitar preamp)
   - 2N2222 (medium-gain NPN)
   - BC107 (European NPN, often in vintage fuzz/distortion)
   - 2N3906 (PNP complement)
-- ✅ BJTOperatingPoint structure (Vbe, Vce, currents, impedances)
-- ✅ Small-signal parameter extraction (gm, rbe, rce)
-- ✅ Saturation region detection
-- ✅ FET quadratic model (enhancement MOSFETs)
-- ✅ FETCharacteristics with presets (2N7000, BS170, etc.)
-- ✅ FETOperatingPoint with triode/saturation detection
-- ✅ TransistorClippingStage for audio-rate processing
+-  BJTOperatingPoint structure (Vbe, Vce, currents, impedances)
+-  Small-signal parameter extraction (gm, rbe, rce)
+-  Saturation region detection
+-  FET quadratic model (enhancement MOSFETs)
+-  FETCharacteristics with presets (2N7000, BS170, etc.)
+-  FETOperatingPoint with triode/saturation detection
+-  TransistorClippingStage for audio-rate processing
 
 **Code Examples:**
 
@@ -319,10 +319,10 @@ void testDiodeClipping() {
 
 By end of Phase 1:
 
-- ✅ MXR Distortion+ output matches SPICE simulation within 2% THD
-- ✅ Fuzz Face produces characteristic soft clipping (<0.5ms latency overhead)
-- ✅ Boss SD-1 tone matches analog reference (blind listening test)
-- ✅ DSP processing time <10% CPU on average guitar input (44.1kHz, i7)
+-  MXR Distortion+ output matches SPICE simulation within 2% THD
+-  Fuzz Face produces characteristic soft clipping (<0.5ms latency overhead)
+-  Boss SD-1 tone matches analog reference (blind listening test)
+-  DSP processing time <10% CPU on average guitar input (44.1kHz, i7)
 
 ---
 

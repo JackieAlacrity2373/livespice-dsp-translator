@@ -15,13 +15,13 @@
 ```
 h:\Live Spice DSP translation layer\
 │
-├── 📦 CORE TRANSLATOR
+├──  CORE TRANSLATOR
 │   ├── Livespice_to_DSP.cpp        ← Main entry point
 │   ├── LiveSpiceParser.h/.cpp      ← XML parsing & data structures
 │   ├── CircuitAnalyzer.h/.cpp      ← Topology analysis & reporting
 │   └── JuceDSPGenerator.h/.cpp     ← JUCE code generation
 │
-├── 🎛️ GENERATED PLUGINS (Auto-created)
+├── 🎛 GENERATED PLUGINS (Auto-created)
 │   ├── JUCE - MXR Distortion +/
 │   │   ├── CircuitProcessor.h
 │   │   ├── CircuitProcessor.cpp
@@ -45,11 +45,11 @@ h:\Live Spice DSP translation layer\
 │   ├── QUICK_START.md              ← Initial quick guide
 │   └── INDEX.md                    ← File index
 │
-├── 🔧 BUILD CONFIGURATION
+├──  BUILD CONFIGURATION
 │   ├── .vscode/tasks.json          ← VS Code build tasks
 │   ├── CMakeLists.txt              ← Main project CMake (if needed)
 │   │
-│   └── 📚 EXTERNAL DEPENDENCIES
+│   └──  EXTERNAL DEPENDENCIES
 │       └── third_party/JUCE/       ← Downloaded JUCE framework
 │
 ├── 📂 EXAMPLE CIRCUITS
@@ -61,7 +61,7 @@ h:\Live Spice DSP translation layer\
 │       ├── Marshall Blues Breaker.schx
 │       └── MXR Distortion +.schx
 │
-└── 📊 OUTPUT FILES
+└──  OUTPUT FILES
     ├── output.txt                 ← Circuit analysis output
     ├── juce_output.txt           ← JUCE generation output
     ├── juce_generated.txt        ← Latest JUCE output

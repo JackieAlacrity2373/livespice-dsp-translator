@@ -1235,7 +1235,7 @@ void testResistor() {
     
     // Should be I = V/R = 5/1000 = 5mA
     assert(std::abs(r.getCurrent() - 0.005) < 1e-6);
-    std::cout << "✓ Resistor test passed" << std::endl;
+    std::cout << " Resistor test passed" << std::endl;
 }
 
 void testDiode() {
@@ -1249,7 +1249,7 @@ void testDiode() {
     
     // Should conduct (positive current)
     assert(d.getCurrent() > 0.0);
-    std::cout << "✓ Diode test passed" << std::endl;
+    std::cout << " Diode test passed" << std::endl;
 }
 
 int main() {

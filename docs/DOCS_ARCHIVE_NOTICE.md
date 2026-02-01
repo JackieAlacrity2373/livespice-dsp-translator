@@ -56,7 +56,7 @@ These are retained as reference material but are not actively maintained:
 
 ---
 
-## 🗂️ Suggested Cleanup (Optional)
+##  Suggested Cleanup (Optional)
 
 If you want to reduce clutter, you can move archived files to an `DOCS_ARCHIVE/` directory:
 
@@ -76,7 +76,7 @@ Then update version control to track the archive folder.
 
 ---
 
-## ✅ Active Documentation
+##  Active Documentation
 
 The following files are **currently maintained** and represent the authoritative source:
 

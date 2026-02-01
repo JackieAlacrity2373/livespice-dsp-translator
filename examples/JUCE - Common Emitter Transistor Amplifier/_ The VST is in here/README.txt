@@ -5,14 +5,14 @@
 This folder contains the compiled audio plugin for 
 Common Emitter Transistor Amplifier (BJT Amp).
 
-📦 FILES INCLUDED:
+ FILES INCLUDED:
 
-  🎚️ Common Emitter Transistor Amplifier.vst3
+  🎚 Common Emitter Transistor Amplifier.vst3
      - VST3 plugin format
      - Can be used in DAWs (FL Studio, Ableton, Reaper, etc.)
      - Copy to your DAW's VST3 folder to use
 
-  💻 Common Emitter Transistor Amplifier.exe
+   Common Emitter Transistor Amplifier.exe
      - Standalone application
      - Double-click to run independently
      - No DAW required

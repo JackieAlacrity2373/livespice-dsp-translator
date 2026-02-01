@@ -112,7 +112,7 @@
 ║  ║  │  Status Labels:                                             │  ║ ║
 ║  ║  │  • "Phase: CONFIGURED - Ready for A/B Testing"           │  ║ ║
 ║  ║  │  • "Currently Using: SIDE B (DSP - MXR Distortion+)"    │  ║ ║ 
-║  ║  │  • "Audio: Processing ✓"                                  │  ║ ║
+║  ║  │  • "Audio: Processing "                                  │  ║ ║
 ║  ║  └──────────────────────────────────────────────────────────────┘  ║ ║
 ║  ║                                                                     ║ ║
 ║  ║  ┌──────────────────────────────────────────────────────────────┐  ║ ║
@@ -177,8 +177,8 @@ User: Click "Load Plugin A"
   └─ MainComponent::loadPluginA()
      ├─ filePath = "H:/path/to/Live Spice Sim.vst3"
      ├─ sideA = ProcessorFactory::createFromFile(filePath)
-     │  ├─ Check file exists ✓
-     │  ├─ Check extension (.vst3) ✓
+     │  ├─ Check file exists 
+     │  ├─ Check extension (.vst3) 
      │  └─ ProcessorFactory::createFromVST3(filePath)
      │     └─ new PluginHostWrapper(filePath, sampleRate, blockSize)
      │        └─ host = std::make_unique<PluginHost>()
@@ -198,7 +198,7 @@ User: Click "Load Plugin A"
      ├─ controlPanel->setProcessors(sideA, sideB)
      │
      ├─ isPluginALoaded = true
-     ├─ Update UI label: "Plugin A: Live Spice [Loaded] ✓"
+     ├─ Update UI label: "Plugin A: Live Spice [Loaded] "
      └─ updateWorkflowPhase()
         └─ If both loaded → Transition to CONFIGURED
            └─ controlPanel->setVisible(true)
@@ -213,7 +213,7 @@ User: Click "Load DSP Circuit B" or Auto-Load
   └─ MainComponent::loadCircuitB()
      ├─ circuitName = "mxr"
      ├─ sideB = ProcessorFactory::createNativeCircuit(circuitName)
-     │  ├─ Check name valid ("mxr" → MXRDistortion) ✓
+     │  ├─ Check name valid ("mxr" → MXRDistortion) 
      │  └─ ProcessorFactory::createCircuitProcessorWrapper(circuitName)
      │     └─ new CircuitProcessorWrapper<MXRDistortion>()
      │        └─ processor = std::make_unique<MXRDistortion>()
@@ -249,7 +249,7 @@ User: Click "Load DSP Circuit B" or Auto-Load
      │     └─ Register with ParameterSynchronizer
      │
      ├─ isPluginBLoaded = true
-     ├─ Update UI label: "Plugin B: MXR Distortion+ [Loaded] ✓"
+     ├─ Update UI label: "Plugin B: MXR Distortion+ [Loaded] "
      └─ updateWorkflowPhase()
         └─ If both loaded → Transition to CONFIGURED ★
            ├─ controlPanel->setVisible(true)
@@ -340,7 +340,7 @@ ControlPanel::sliderValueChanged(driveSlider)
 User: Presses Spacebar key
 
 MainComponent::keyPressed(KeyPress(spaceKey))
-  ├─ Check: currentPhase == Configured?  ✓ Yes
+  ├─ Check: currentPhase == Configured?   Yes
   │
   ├─ router->toggle()
   │  └─ useProcessorA = !useProcessorA
@@ -397,8 +397,8 @@ Next Audio Block (immediate):
   │ Partial  │         │ Partial  │         │ CONFIGURED   │
   │ (Wait B) │         │ (Wait A) │         │              │
   └────┬─────┘         └────┬─────┘         │ State:       │
-       │                    │               │ • sideA ✓    │
-       │                    │               │ • sideB ✓    │
+       │                    │               │ • sideA     │
+       │                    │               │ • sideB     │
        └────────┬───────────┘               │ • Audio ON   │
                 │                           │              │
                 └──────────────┬────────────→│ Actions:     │

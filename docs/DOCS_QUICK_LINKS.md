@@ -44,7 +44,7 @@
 
 ---
 
-## 🚀 Essential Commands
+##  Essential Commands
 
 ```bash
 # Generate a plugin
