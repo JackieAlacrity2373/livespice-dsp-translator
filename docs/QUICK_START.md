@@ -58,7 +58,7 @@ build\\MXR_Distortion___artefacts\\Release\\Standalone\\MXR Distortion +.exe
 
 ## What You Get
 
-✅ Working distortion effect with:
+ Working distortion effect with:
 - Drive control (0-100%, ranges 0.1x to 10x gain)
 - Level control (0-100%, default 50%)
 - Input high-pass filter @ 72 Hz (DC blocking)

@@ -200,17 +200,17 @@ cat full_pattern_output.txt | grep "Pattern Match"
 ### Current Version (v2.0 - January 2026)
 
 **Stable Mode:**
-- ✅ Nonlinear diode clipping (Phase 1 complete)
-- ✅ Generic stage-based DSP mapping
-- ✅ JUCE parameter generation
-- ✅ All tests passing
+-  Nonlinear diode clipping (Phase 1 complete)
+-  Generic stage-based DSP mapping
+-  JUCE parameter generation
+-  All tests passing
 
 **Beta Mode:**
-- ✅ Pattern detection framework
-- ✅ 5 initial patterns (RC filters, op-amp clipping, etc.)
-- ✅ Confidence scoring
-- 🔨 Pattern-specific code generation (in development)
-- 🔨 Advanced BJT/FET emission
+-  Pattern detection framework
+-  5 initial patterns (RC filters, op-amp clipping, etc.)
+-  Confidence scoring
+-  Pattern-specific code generation (in development)
+-  Advanced BJT/FET emission
 - 📋 State-space solvers (planned)
 
 ---

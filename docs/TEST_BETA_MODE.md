@@ -22,7 +22,7 @@
 
 ## Results
 
-### ✅ Pattern Detection (Both Modes)
+###  Pattern Detection (Both Modes)
 
 Both modes correctly detect circuit patterns:
 
@@ -50,7 +50,7 @@ signal = (float)stage0_capacitor.getVoltage();
 - Generic RC filter implementation
 - Uses LiveSPICE component models
 - No pattern-specific optimization
-- ✅ Proven, reliable
+-  Proven, reliable
 
 ---
 
@@ -72,41 +72,41 @@ signal = (float)stage0_capacitor.getVoltage();
 - Pattern detected and annotated in code
 - TODO markers for future optimizations
 - Currently falls back to stable code (safe)
-- ✅ Framework ready for optimized implementations
+-  Framework ready for optimized implementations
 
 ---
 
 ## Feature Validation
 
-### ✅ Mode Selection Working
+###  Mode Selection Working
 
 | Test | Result |
 |------|--------|
-| `--stable` flag recognized | ✅ Pass |
-| `--beta` flag recognized | ✅ Pass |
-| Default mode is stable | ✅ Pass |
-| `--help` shows options | ✅ Pass |
-| Console shows mode indicator | ✅ Pass |
+| `--stable` flag recognized |  Pass |
+| `--beta` flag recognized |  Pass |
+| Default mode is stable |  Pass |
+| `--help` shows options |  Pass |
+| Console shows mode indicator |  Pass |
 
-### ✅ Code Generation Differences
+###  Code Generation Differences
 
 | Feature | Stable | Beta |
 |---------|--------|------|
-| Pattern detection runs | ✅ Yes | ✅ Yes |
-| Pattern confidence checked | ❌ No | ✅ Yes (≥0.8) |
-| Pattern annotations in code | ❌ No | ✅ Yes |
-| Generic fallback | ✅ Always | ✅ For low confidence |
-| TODO markers for optimization | ❌ No | ✅ Yes |
+| Pattern detection runs |  Yes |  Yes |
+| Pattern confidence checked |  No |  Yes (≥0.8) |
+| Pattern annotations in code |  No |  Yes |
+| Generic fallback |  Always |  For low confidence |
+| TODO markers for optimization |  No |  Yes |
 
-### ✅ Safety Features
+###  Safety Features
 
 | Safety Check | Status |
 |--------------|--------|
-| Beta disabled by default | ✅ Pass |
-| Low confidence patterns use stable code | ✅ Pass |
-| Beta falls back to stable for unknown patterns | ✅ Pass |
-| Both modes compile successfully | ✅ Pass |
-| Both modes generate valid JUCE code | ✅ Pass |
+| Beta disabled by default |  Pass |
+| Low confidence patterns use stable code |  Pass |
+| Beta falls back to stable for unknown patterns |  Pass |
+| Both modes compile successfully |  Pass |
+| Both modes generate valid JUCE code |  Pass |
 
 ---
 
@@ -149,7 +149,7 @@ signal = D1_clipper.processSample(signal);
 - Uses component-aware diode models (1N916)
 - Shockley equation solver
 - Newton-Raphson iteration
-- ✅ Already production-ready
+-  Already production-ready
 
 ---
 
@@ -194,16 +194,16 @@ if (m_useBetaFeatures && !stage.patternStrategy.empty() && stage.patternConfiden
 
 ## Rollback Testing
 
-### ✅ Quick Rollback Test
+###  Quick Rollback Test
 
 ```bash
 # Problem with beta? Switch immediately:
 .\livespice-translator --stable "example pedals/Boss Super Overdrive SD-1.schx"
 ```
 
-**Result:** ✅ Generates identical code to pre-beta version
+**Result:**  Generates identical code to pre-beta version
 
-### ✅ No Regression
+###  No Regression
 
 **Comparison:** Beta mode with low confidence patterns generates identical code to stable mode
 **Verified:** All 3 Boss SD-1 stages compile and link successfully in both modes
@@ -220,7 +220,7 @@ cd build
 cmake ..
 cmake --build . --config Release
 ```
-**Result:** ✅ Build successful
+**Result:**  Build successful
 
 ### Beta Mode Build
 ```bash
@@ -230,7 +230,7 @@ cd build
 cmake ..
 cmake --build . --config Release
 ```
-**Result:** ✅ Build successful
+**Result:**  Build successful
 
 ---
 
@@ -240,22 +240,22 @@ cmake --build . --config Release
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Pattern detection | ✅ Complete | 5 patterns recognized |
-| Confidence scoring | ✅ Complete | 0.0-1.0 scale |
-| Code annotations | ✅ Complete | Beta markers in output |
-| Optimized biquad emission | ⚠️ TODO | Falls back to stable |
-| Optimized gain stage emission | ⚠️ TODO | Falls back to stable |
-| Tone stack emission | ⚠️ TODO | Falls back to stable |
+| Pattern detection |  Complete | 5 patterns recognized |
+| Confidence scoring |  Complete | 0.0-1.0 scale |
+| Code annotations |  Complete | Beta markers in output |
+| Optimized biquad emission |  TODO | Falls back to stable |
+| Optimized gain stage emission |  TODO | Falls back to stable |
+| Tone stack emission |  TODO | Falls back to stable |
 | State-space models | 📋 Planned | Phase 3 |
 | WDF topology mapping | 📋 Planned | Phase 3 |
 
 ### Safe Fallback Behavior
 
 Beta mode currently:
-1. ✅ Detects patterns
-2. ✅ Annotates code with pattern information
-3. ✅ Adds TODO markers for future optimizations
-4. ✅ **Falls back to stable code generation**
+1.  Detects patterns
+2.  Annotates code with pattern information
+3.  Adds TODO markers for future optimizations
+4.  **Falls back to stable code generation**
 
 This ensures:
 - No risk of broken builds
@@ -293,14 +293,14 @@ This ensures:
 
 ## Conclusion
 
-✅ **Beta mode infrastructure is working perfectly:**
+ **Beta mode infrastructure is working perfectly:**
 - Mode selection functional
 - Pattern detection integrated
 - Safe fallback in place
 - Code annotations clear
 - No regressions introduced
 
-⚠️ **Optimizations are framework-only:**
+ **Optimizations are framework-only:**
 - TODO markers indicate planned optimizations
 - Current implementation uses stable code
 - Safe for testing and development

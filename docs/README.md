@@ -2,11 +2,11 @@
 
 Convert LiveSpice guitar pedal schematics to JUCE audio plugins with real-time pattern-matched DSP processing.
 
-**Status:** ✅ Production Ready | **Latest:** Phase 2 Complete (Pattern Matching)
+**Status:**  Production Ready | **Latest:** Phase 2 Complete (Pattern Matching)
 
 ---
 
-## 📚 Documentation
+##  Documentation
 
 **→ [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)** - Full documentation map (start here)
 
@@ -16,7 +16,7 @@ Key docs:
 - [PHASE_2_COMPLETION_FINAL.md](PHASE_2_COMPLETION_FINAL.md) - Pattern matching details
 - [BUILD_INFRASTRUCTURE.md](BUILD_INFRASTRUCTURE.md) - Build system reference
 
-## ⚡ Quick Start (5 minutes)
+##  Quick Start (5 minutes)
 
 ### Generate a Plugin
 ```bash
@@ -30,15 +30,15 @@ mkdir build && cd build
 cmake .. && cmake --build . --config Release
 ```
 
-## 🎯 Features
+##  Features
 
-- ✅ **Pattern Matching** - 17 circuit topologies auto-detected
-- ✅ **DSP Translation** - Real-time audio processing
-- ✅ **Plugin Generation** - Auto-generated JUCE code
-- ✅ **A/B Testing** - Compare circuits in real-time
-- ✅ **Nonlinear Models** - Transistor & diode modeling
+-  **Pattern Matching** - 17 circuit topologies auto-detected
+-  **DSP Translation** - Real-time audio processing
+-  **Plugin Generation** - Auto-generated JUCE code
+-  **A/B Testing** - Compare circuits in real-time
+-  **Nonlinear Models** - Transistor & diode modeling
 
-## 🔨 Build Translator
+##  Build Translator
 
 ```bash
 g++ -std=c++17 -O2 Livespice_to_DSP.cpp LiveSpiceParser.cpp CircuitAnalyzer.cpp \
@@ -53,9 +53,9 @@ g++ -std=c++17 -O2 Livespice_to_DSP.cpp LiveSpiceParser.cpp CircuitAnalyzer.cpp 
 .\livespice-translator.exe --help      # Show help
 ```
 
-## ✨ Latest Update
+##  Latest Update
 
-**Phase 2 (Jan 31, 2026)** - Pattern Matching System ✅
+**Phase 2 (Jan 31, 2026)** - Pattern Matching System 
 - 17 circuit patterns implemented
 - Topology-based DSP strategy assignment
 - All tests passing - production ready

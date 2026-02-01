@@ -307,12 +307,12 @@ JUCE - Marshall Blues Breaker/
 
 The Automated Calibration System provides:
 
-✅ **Automatic parameter tuning** - No manual tweaking needed  
-✅ **Objective metrics** - Quantifiable accuracy measurements  
-✅ **Fast convergence** - Typically < 100 iterations  
-✅ **Non-intrusive** - Runs in background without blocking audio  
-✅ **Extensible** - Easy to add new parameters and metrics  
-✅ **Production-ready** - Suitable for final product validation  
+ **Automatic parameter tuning** - No manual tweaking needed  
+ **Objective metrics** - Quantifiable accuracy measurements  
+ **Fast convergence** - Typically < 100 iterations  
+ **Non-intrusive** - Runs in background without blocking audio  
+ **Extensible** - Easy to add new parameters and metrics  
+ **Production-ready** - Suitable for final product validation  
 
 Use it to:
 - Match digital pedals to LiveSpice simulations

@@ -11,16 +11,16 @@
 This roadmap outlines the strategic evolution of the LiveSPICE to JUCE DSP translator, progressing from current basic topology decomposition toward production-grade circuit emulation with advanced modeling techniques.
 
 **Current Capabilities:**
-- ✅ LiveSpice XML parsing and component extraction
-- ✅ Basic circuit topology analysis (stage identification)
-- ✅ JUCE plugin code generation with parametric DSP chains
-- ✅ Standalone plugin compilation and deployment
-- ✅ A/B comparison testing with real-time level metering
+-  LiveSpice XML parsing and component extraction
+-  Basic circuit topology analysis (stage identification)
+-  JUCE plugin code generation with parametric DSP chains
+-  Standalone plugin compilation and deployment
+-  A/B comparison testing with real-time level metering
 
 **Recent Updates (January 29, 2026):**
-- ✅ Centralized tone-stack detection to prevent duplicate filter declarations
-- ✅ Eliminated false positives (Input Buffer no longer tagged as tone stack)
-- ✅ Regenerated Marshall Blues Breaker output to verify clean tone-stack handling
+-  Centralized tone-stack detection to prevent duplicate filter declarations
+-  Eliminated false positives (Input Buffer no longer tagged as tone stack)
+-  Regenerated Marshall Blues Breaker output to verify clean tone-stack handling
 
 **Target Outcome (18 months):** Production-ready circuit emulation engine capable of generating authentic guitar pedal plugins with ±5% accuracy compared to analog hardware.
 
@@ -117,10 +117,10 @@ Guitar pedals derive their character primarily from nonlinear elements: diode cl
 - Unit tests comparing DSP output vs. SPICE reference
 
 ### Success Criteria
-- ✅ MXR Distortion+ output matches SPICE simulation within 2% THD
-- ✅ Fuzz Face produces characteristic soft clipping (<0.5ms latency overhead)
-- ✅ Boss SD-1 tone matches analog reference (blind listening test)
-- ✅ DSP processing time <10% CPU on average guitar input
+-  MXR Distortion+ output matches SPICE simulation within 2% THD
+-  Fuzz Face produces characteristic soft clipping (<0.5ms latency overhead)
+-  Boss SD-1 tone matches analog reference (blind listening test)
+-  DSP processing time <10% CPU on average guitar input
 
 ### Dependencies
 - None (standalone feature)
@@ -228,10 +228,10 @@ Different circuit topologies require different DSP approaches. A phase-shift net
 - Test suite with known circuits
 
 ### Success Criteria
-- ✅ Correctly identify 90%+ of known guitar circuit patterns
-- ✅ Generated code for tone controls matches SPICE frequency response (±1dB)
-- ✅ Feedback loops detected and flagged for stability analysis
-- ✅ Resonant circuits generate appropriate peaking response
+-  Correctly identify 90%+ of known guitar circuit patterns
+-  Generated code for tone controls matches SPICE frequency response (±1dB)
+-  Feedback loops detected and flagged for stability analysis
+-  Resonant circuits generate appropriate peaking response
 
 ### Dependencies
 - Phase 1 (nonlinear models can be used within patterns)
@@ -341,10 +341,10 @@ State-space representation $(Ax + Bu = y)$ is fundamental to modern DSP and cont
 - Parameter interpolation utilities
 
 ### Success Criteria
-- ✅ Generated state-space code matches SPICE within 0.5dB across 20Hz-20kHz
-- ✅ Real-time parameter sweep without audio clicks/pops
-- ✅ Boss SD-1 tone knob enables smooth morphing between configurations
-- ✅ CPU cost <5ms per 512-sample block on Intel i7
+-  Generated state-space code matches SPICE within 0.5dB across 20Hz-20kHz
+-  Real-time parameter sweep without audio clicks/pops
+-  Boss SD-1 tone knob enables smooth morphing between configurations
+-  CPU cost <5ms per 512-sample block on Intel i7
 
 ### Dependencies
 - Phase 2 (pattern matching helps identify where state-space applies)
@@ -480,10 +480,10 @@ WDF is the gold standard for circuit emulation because it:
 - Performance profiling and optimization guide
 
 ### Success Criteria
-- ✅ MXR Distortion+ WDF emulation matches hardware within 3% THD
-- ✅ Fuzz Face generates characteristic "sag" when driven hard
-- ✅ Boss SD-1 tone stack matches analog frequency response ±1.5dB
-- ✅ DSP processing time <8ms per 512-sample block
+-  MXR Distortion+ WDF emulation matches hardware within 3% THD
+-  Fuzz Face generates characteristic "sag" when driven hard
+-  Boss SD-1 tone stack matches analog frequency response ±1.5dB
+-  DSP processing time <8ms per 512-sample block
 
 ### Dependencies
 - Phase 1 (nonlinear models)
@@ -621,10 +621,10 @@ Real guitar pedals change tone based on ambient temperature and thermal operatio
 - Validation test data comparing DSP vs. hardware at multiple temperatures
 
 ### Success Criteria
-- ✅ Temperature knob from 0-50°C produces noticeable tone changes
-- ✅ Fuzz Face bias point shifts correctly with temperature
-- ✅ Boss SD-1 tone control frequency matches hardware ±10Hz across temperature range
-- ✅ Optional: Realistic warm-up simulation shows progressive tone change over 10 minutes
+-  Temperature knob from 0-50°C produces noticeable tone changes
+-  Fuzz Face bias point shifts correctly with temperature
+-  Boss SD-1 tone control frequency matches hardware ±10Hz across temperature range
+-  Optional: Realistic warm-up simulation shows progressive tone change over 10 minutes
 
 ### Dependencies
 - Phase 1 (diode/transistor models already capture temperature dependence)
@@ -706,14 +706,14 @@ Real guitar pedals change tone based on ambient temperature and thermal operatio
 ### Production Release Criteria
 
 Before releasing v1.0:
-- ✅ All 18 test circuits (2 of each topology) generate code within spec
-- ✅ Zero segfaults or crashes in DSP processing
-- ✅ CPU cost consistently <12% on target hardware (Intel i7, 44.1kHz)
-- ✅ Frequency response measured to ±1dB across 20Hz-20kHz
-- ✅ THD within 3% of hardware for all distortion/overdrive circuits
-- ✅ Documentation complete (user guide, developer guide, architecture)
-- ✅ Unit test coverage >80%
-- ✅ Beta tester feedback incorporated
+-  All 18 test circuits (2 of each topology) generate code within spec
+-  Zero segfaults or crashes in DSP processing
+-  CPU cost consistently <12% on target hardware (Intel i7, 44.1kHz)
+-  Frequency response measured to ±1dB across 20Hz-20kHz
+-  THD within 3% of hardware for all distortion/overdrive circuits
+-  Documentation complete (user guide, developer guide, architecture)
+-  Unit test coverage >80%
+-  Beta tester feedback incorporated
 
 ---
 

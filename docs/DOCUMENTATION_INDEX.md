@@ -5,7 +5,7 @@
 
 ---
 
-## 📚 Core Documentation
+##  Core Documentation
 
 ### Quick Start (5 min read)
 - **[QUICK_START.md](QUICK_START.md)** - Get running in 5 minutes
@@ -26,7 +26,7 @@
 
 ---
 
-## 🔍 Component Reference
+##  Component Reference
 
 - **[COMPONENT_REFERENCE_LOOKUP.md](COMPONENT_REFERENCE_LOOKUP.md)** - Component database
 - **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - DSP parameter cheat sheet
@@ -52,16 +52,16 @@ cmake -B build && cmake --build build --config Release
 
 ---
 
-## 🎯 Key Features
+##  Key Features
 
-✅ **Pattern Matching** - 17 circuit topologies auto-detected  
-✅ **DSP Translation** - Real-time audio processing  
-✅ **Plugin Generation** - Auto-generated JUCE code  
-✅ **A/B Testing** - Compare circuits in real-time  
+ **Pattern Matching** - 17 circuit topologies auto-detected  
+ **DSP Translation** - Real-time audio processing  
+ **Plugin Generation** - Auto-generated JUCE code  
+ **A/B Testing** - Compare circuits in real-time  
 
 ---
 
-## 📦 Project Structure
+##  Project Structure
 
 ```
 .
@@ -91,7 +91,7 @@ cmake -B build && cmake --build build --config Release
 
 ---
 
-## 🚀 Getting Started (Choose Your Path)
+##  Getting Started (Choose Your Path)
 
 ### I want to generate a plugin
 → Read [QUICK_START.md](QUICK_START.md) (5 min)
@@ -110,7 +110,7 @@ cmake -B build && cmake --build build --config Release
 
 ---
 
-## ✨ Latest Updates
+##  Latest Updates
 
 **Phase 2 (Jan 31, 2026):**
 - 17 circuit patterns implemented
