@@ -4,14 +4,14 @@
 
 This folder contains the compiled audio plugin for Bridge Rectifier.
 
-📦 FILES INCLUDED:
+ FILES INCLUDED:
 
-  🎚️ Bridge Rectifier.vst3
+  🎚 Bridge Rectifier.vst3
      - VST3 plugin format
      - Can be used in DAWs (FL Studio, Ableton, Reaper, etc.)
      - Copy to your DAW's VST3 folder to use
 
-  💻 Bridge Rectifier.exe
+   Bridge Rectifier.exe
      - Standalone application
      - Double-click to run independently
      - No DAW required

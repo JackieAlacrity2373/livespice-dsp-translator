@@ -4,14 +4,14 @@
 
 This folder contains the compiled audio plugin for MXR Distortion+.
 
-📦 FILES INCLUDED:
+ FILES INCLUDED:
 
-  🎚️ MXR Distortion +.vst3
+  🎚 MXR Distortion +.vst3
      - VST3 plugin format
      - Can be used in DAWs (FL Studio, Ableton, Reaper, etc.)
      - Copy to your DAW's VST3 folder to use
 
-  💻 MXR Distortion +.exe
+   MXR Distortion +.exe
      - Standalone application
      - Double-click to run independently
      - No DAW required

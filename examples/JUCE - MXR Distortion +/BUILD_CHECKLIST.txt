@@ -3,11 +3,11 @@ BUILD CHECKLIST - MXR Distortion+ Plugin
 
 CURRENT STATUS
 ==============
-[✓] Translator compiled and working
-[✓] Plugin source code generated
-[✓] All LiveSpice components implemented
-[✓] Parameter system complete (Phase 6)
-[✓] JUCE framework present
+[] Translator compiled and working
+[] Plugin source code generated
+[] All LiveSpice components implemented
+[] Parameter system complete (Phase 6)
+[] JUCE framework present
 [✗] CMake installed
 [✗] Visual Studio Build Tools installed
 [✗] Plugin built
