@@ -1,6 +1,6 @@
 # VST3 Plugin Export - Complete Summary
 
-## ✅ All 6 Pedals Successfully Exported as VST3
+##  All 6 Pedals Successfully Exported as VST3
 
 All example pedals have been rebuilt with VST3 export capability. Each pedal now generates **two** formats:
 
@@ -9,7 +9,7 @@ All example pedals have been rebuilt with VST3 export capability. Each pedal now
 
 ---
 
-## 📦 Exported Plugins
+##  Exported Plugins
 
 | Pedal Name | VST3 Size | Standalone Size | Location |
 |------------|-----------|-----------------|----------|
@@ -22,13 +22,13 @@ All example pedals have been rebuilt with VST3 export capability. Each pedal now
 
 ---
 
-## 🎯 User-Friendly Access
+##  User-Friendly Access
 
 Each pedal project now includes a **"_ The VST is in here"** folder containing:
 
-- ✅ The VST3 plugin file (`.vst3` bundle)
-- ✅ The standalone executable (`.exe`)
-- ✅ A comprehensive README.txt with installation instructions
+-  The VST3 plugin file (`.vst3` bundle)
+-  The standalone executable (`.exe`)
+-  A comprehensive README.txt with installation instructions
 
 **Why the underscore?** The `_` prefix makes the folder appear at the top of alphabetically sorted directories, making it easy to find for non-technical users.
 
@@ -54,7 +54,7 @@ Most DAWs allow you to add custom VST3 scan paths:
 
 ---
 
-## 🔧 Technical Changes Made
+##  Technical Changes Made
 
 Each pedal's `CMakeLists.txt` was updated with:
 
@@ -76,7 +76,7 @@ Each pedal's `CMakeLists.txt` was updated with:
 
 ---
 
-## 🚀 A/B Testing Ready
+##  A/B Testing Ready
 
 All VST3 plugins can now be loaded into the **LiveSpice A/B Tester** for comparison:
 
@@ -88,7 +88,7 @@ All VST3 plugins can now be loaded into the **LiveSpice A/B Tester** for compari
 
 ---
 
-## 📊 Build Statistics
+##  Build Statistics
 
 - **Total Build Time**: ~8-10 seconds per pedal (reconfigure + build)
 - **Compiler**: MSVC 19.40.33811.0
@@ -98,7 +98,7 @@ All VST3 plugins can now be loaded into the **LiveSpice A/B Tester** for compari
 
 ---
 
-## 🎨 What Makes This User-Friendly?
+##  What Makes This User-Friendly?
 
 1. **Clear Folder Naming**: `_ The VST is in here` is self-explanatory
 2. **README Files**: Each folder includes installation instructions
@@ -108,7 +108,7 @@ All VST3 plugins can now be loaded into the **LiveSpice A/B Tester** for compari
 
 ---
 
-## 🔄 Rebuilding from Source
+##  Rebuilding from Source
 
 If you need to rebuild any pedal:
 
@@ -126,7 +126,7 @@ Then copy them to `_ The VST is in here\` folder.
 
 ---
 
-## ✨ Next Steps
+##  Next Steps
 
 1. **Test in DAW**: Load any VST3 into your preferred DAW
 2. **A/B Comparison**: Use the A/B Tester to compare with LiveSpice
@@ -137,4 +137,4 @@ Then copy them to `_ The VST is in here\` folder.
 
 **Generated**: January 28, 2026  
 **Project**: LiveSpice-to-DSP Translation Layer  
-**Status**: Production Ready 🎉
+**Status**: Production Ready 

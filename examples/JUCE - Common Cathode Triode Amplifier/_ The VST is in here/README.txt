@@ -5,14 +5,14 @@
 This folder contains the compiled audio plugin for 
 Common Cathode Triode Amplifier (Vacuum Tube Amp).
 
-📦 FILES INCLUDED:
+ FILES INCLUDED:
 
-  🎚️ Common Cathode Triode Amplifier.vst3
+  🎚 Common Cathode Triode Amplifier.vst3
      - VST3 plugin format
      - Can be used in DAWs (FL Studio, Ableton, Reaper, etc.)
      - Copy to your DAW's VST3 folder to use
 
-  💻 Common Cathode Triode Amplifier.exe
+   Common Cathode Triode Amplifier.exe
      - Standalone application
      - Double-click to run independently
      - No DAW required

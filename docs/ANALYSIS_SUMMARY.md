@@ -442,7 +442,7 @@ void test_bjt_amplifier() {
 
 ---
 
-**Status:** ✅ Analysis Complete and Documented
+**Status:**  Analysis Complete and Documented
 
 **Ready for:** C++ DSP Implementation
 
